@@ -13,7 +13,7 @@ void ServerController::start() {
                  serverConfig.serverIp, serverConfig.serverPort, serverConfig.roomCount, serverConfig.maxPlayerCount);
 
     TcpGameServer gameServer{serverConfig.serverIp, serverConfig.serverPort};
-    
+
 
     gameServer.joinOnAcceptThread();
 }

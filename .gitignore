@@ -1,6 +1,6 @@
-./extern/cmake_deps/*
-./cmake/build-debug-linux/*
-./.idea/*
+extern/cmake_deps/*
+cmake/build-debug-linux/*
+.idea/*
 
 CMakeLists.txt.user
 CMakeCache.txt

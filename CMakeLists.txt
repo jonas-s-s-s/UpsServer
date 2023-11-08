@@ -22,4 +22,5 @@ configure_file(./server_config.txt bin/server_config.txt COPYONLY)
 
 add_subdirectory(src bin)
 
-
+# TODO: Add tests only when debug release is selected
+add_subdirectory(test)
