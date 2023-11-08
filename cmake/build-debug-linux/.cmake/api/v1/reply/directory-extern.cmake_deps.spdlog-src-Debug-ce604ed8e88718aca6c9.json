@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "/mnt/c/Users/xPC/Documents/GitHub/UpsServer/extern/cmake_deps/spdlog-build",
+		"source" : "extern/cmake_deps/spdlog-src"
+	}
+}

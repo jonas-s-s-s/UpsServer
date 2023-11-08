@@ -1,0 +1,3 @@
+add_library(tcp_client ClientSocket.cpp DelimitedClientSocket.cpp SocketBase.cpp)
+target_include_directories(tcp_client PUBLIC include)
+target_link_libraries(tcp_client network_utils)

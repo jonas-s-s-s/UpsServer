@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="CPP_MODULE" version="4">
-  <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+<module classpath="CMake" type="CPP_MODULE" version="4">
+  <component name="SonarLintModuleSettings">
+    <option name="uniqueId" value="cd59b8a9-f1d4-428e-bc03-0ad467c5641f" />
   </component>
 </module>

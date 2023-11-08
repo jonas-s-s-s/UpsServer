@@ -1,0 +1,2 @@
+add_library(tcp_server ServerSocketBase.cpp)
+target_include_directories(tcp_server PUBLIC include)

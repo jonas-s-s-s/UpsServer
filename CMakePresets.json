@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Debug-Linux",
+      "displayName": "Debug for Linux",
+      "description": "Basic debugging build for Linux.",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/cmake/build-debug-linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Relase-Linux",
+      "displayName": "Debug for Linux",
+      "description": "Basic release build for Linux.",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/cmake/build-release-linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

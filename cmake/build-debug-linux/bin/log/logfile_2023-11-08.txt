@@ -1,0 +1,41 @@
+[2023-11-08 01:23:02.057] [GL] [info] The program main function has started.
+[2023-11-08 01:23:22.471] [GL] [info] The program main function has started.
+[2023-11-08 01:37:33.238] [GL] [info] The program main function has started.
+[2023-11-08 01:37:47.499] [GL] [info] The program main function has started.
+[2023-11-08 03:40:22.936] [GL] [info] The program main function has started.
+[2023-11-08 03:40:33.943] [GL] [error] An exception has occurred. The program will be terminated.
+Exception name: St16invalid_argument
+Exception message: stoi
+Errno: 25
+
+[2023-11-08 03:40:59.657] [GL] [info] The program main function has started.
+[2023-11-08 03:41:16.496] [GL] [error] An exception has occurred. The program will be terminated.
+Exception name: St16invalid_argument
+Exception message: stoi
+Errno: 25
+
+[2023-11-08 03:59:35.891] [GL] [info] The program main function has started.
+[2023-11-08 03:59:35.894] [GL] [info] Server config loaded: serverIp=127.0.0.1 serverPort=3001 roomCount=30 maxPlayerCount=60
+[2023-11-08 04:09:24.664] [GL] [info] The program main function has started.
+[2023-11-08 04:09:24.667] [GL] [info] Server config loaded: serverIp=127.0.0.1 serverPort=3001 roomCount=30 maxPlayerCount=60
+[2023-11-08 04:32:15.151] [GL] [info] The program main function has started.
+[2023-11-08 04:32:15.157] [GL] [info] Server config loaded: serverIp=127.0.0.1 serverPort=3001 roomCount=30 maxPlayerCount=60
+[2023-11-08 04:32:15.158] [GL] [info] A new server socket FD4 is now listening on port 3001
+[2023-11-08 04:32:15.158] [GL] [info] TCP accept thread has started for socket FD4
+[2023-11-08 04:32:56.577] [GL] [info] A new TCP client FD5 connected to server FD4
+[2023-11-08 04:32:56.577] [GL] [info] C: 4
+[2023-11[2023-11-08 04:44:51.696] [GL] [info] The program main function has started.
+[2023-11-08 04:44:51.698] [GL] [info] Server config loaded: serverIp=127.0.0.1 serverPort=3001 roomCount=30 maxPlayerCount=60
+[2023-11-08 04:44:51.699] [GL] [info] A new server socket FD4 is now listening on port 3001
+[2023-11-08 04:44:51.699] [GL] [info] TCP accept thread has started for socket FD4
+[2023-11-08 04:44:54.714] [GL] [info] A new TCP client FD5 connected to server FD4
+[2023-11-08 04:44:54.714] [GL] [info] C: 5
+[2023-11-08 04:45:00.632] [GL] [info] A new TCP client FD6 connected to server FD4
+[2023-11-08 04:45:00.632] [GL] [info] C: 6
+[2023-11-08 04:45:02.445] [GL] [info] A new TCP client FD7 connected to server FD4
+[2023-11-08 04:45:02.445] [GL] [info] C: 7
+[2023-11-08 04:45:04.338] [GL] [info] A new TCP client FD8 connected to server FD4
+[2023-11-08 04:45:04.338] [GL] [info] C: 8
+[2023-11-08 04:45:05.845] [GL] [info] A new TCP client FD9 connected to server FD4
+[2023-11-08 04:45:05.845] [GL] [info] C: 9
+[2023-11-08 04:4
