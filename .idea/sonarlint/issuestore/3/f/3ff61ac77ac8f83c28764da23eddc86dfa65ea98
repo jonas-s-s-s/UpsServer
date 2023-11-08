@@ -1,6 +1,0 @@
-
-Z	cpp:S6185"9Use std::format instead of concatenating pieces manually.(›ÌÌòûÿÿÿÿ8Æ‡üçº1
-U	cpp:S6185""9Use std::format instead of concatenating pieces manually.(¬žÕè8È‡üçº1
-R	cpp:S6168&"6Replace this use of "std::thread" with "std::jthread".(¦ÁªÙ8É‡üçº1
-`	cpp:S5271)"Dfunction 'tcpAcceptLoop' could be declared with attribute 'noreturn'(È½ƒ“8Ê‡üçº1
-U	cpp:S61858"9Use std::format instead of concatenating pieces manually.(­†œ‹8Ð‡üçº1
