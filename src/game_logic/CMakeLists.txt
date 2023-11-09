@@ -1,7 +1,0 @@
-add_library(game_logic TcpGameServer.cpp)
-target_include_directories(game_logic PUBLIC include)
-target_link_libraries(game_logic tcp_client tcp_server network_utils)
-
-add_library(server_controller ServerController.cpp)
-target_include_directories(server_controller PUBLIC include)
-target_link_libraries(server_controller config game_logic)

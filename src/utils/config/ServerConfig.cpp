@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include "ServerConfig.h"
 
 ServerConfig::ServerConfig(const std::string &configFilePath) {

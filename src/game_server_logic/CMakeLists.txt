@@ -1,0 +1,10 @@
+add_library(game_server TcpGameServer.cpp)
+target_include_directories(game_server PUBLIC include)
+target_link_libraries(game_server tcp_client tcp_server network_utils protocol)
+
+
+add_library(server_controller ServerController.cpp)
+target_include_directories(server_controller PUBLIC include)
+target_link_libraries(server_controller config game_logic)
+
+add_subdirectory(protocol)
