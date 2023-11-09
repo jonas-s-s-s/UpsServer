@@ -7,6 +7,10 @@
 
 void TcpGameServer::newClientConnectedHandler(int clientSocket) {
     spdlog::info("C: {0}", clientSocket);
+    //===============================================================
+    // Send Client FD to idle thread epoll via signal?
+
+
 }
 
 TcpGameServer::TcpGameServer(const std::string &address, uint16_t port) : ServerSocketBase(address, port) {}

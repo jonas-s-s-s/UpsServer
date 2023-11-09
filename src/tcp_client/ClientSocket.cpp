@@ -11,6 +11,11 @@
 #include "netTools.h"
 #include "spdlog/spdlog.h"
 
+/**
+ * Used for testing purposes. Allows connection to our own server.
+ * @param address Server's address
+ * @param port Server's port
+ */
 ClientSocket::ClientSocket(const std::string &address, uint16_t port) {
     //First determine the serverIp (address can be either hostname or numeric ip)
     std::string serverIp = convertToValidIpV4(address, port);
