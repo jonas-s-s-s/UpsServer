@@ -25,10 +25,10 @@ public:
     explicit ServerConfig(const std::string &configFilePath);
 
 private:
-    unsigned int roomCount_;
-    unsigned int maxPlayerCount_;
+    unsigned int roomCount_{};
+    unsigned int maxPlayerCount_{};
     std::string serverIp_;
-    uint16_t serverPort_;
+    uint16_t serverPort_{};
 
     static void trim(std::string &arg);
 

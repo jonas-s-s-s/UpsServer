@@ -12,6 +12,6 @@ MethodName parseMethodName(const std::string &name) {
     if (it != table.end()) {
         return it->second;
     } else {
-        throw std::runtime_error("parseMethodName: Error - this method name is not contained within enum.");
+        return MethodName::PARSING_FAILED;
     }
 }

@@ -28,7 +28,7 @@ void ServerConfig::parse(std::ifstream &file) {
 
         //Process line (avoiding using split function form netTools.h)
         bool isLhs = true;
-        for (char &c: line) {
+        for (char const &c: line) {
             if (c == ':') {
                 isLhs = false;
                 continue;
