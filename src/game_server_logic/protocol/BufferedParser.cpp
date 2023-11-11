@@ -5,22 +5,72 @@
 #include <stdexcept>
 #include "BufferedParser.h"
 #include "ProtocolData.h"
+#include "spdlog/spdlog.h"
 
-std::optional<ProtocolData> BufferedParser::parse(const std::string &data) {
+std::optional<std::vector<ProtocolData>> BufferedParser::parse(const std::string &data) {
+    std::vector<ProtocolData> outputMsgs{};
+
+    // Process each message
+    unsigned long lastMsgEnd = 0;
+    while (lastMsgEnd < data.length()) {
+        //##############################################################################################################
+        //# Extract message from data
+        //##############################################################################################################
+        unsigned long thisMsgStart = (lastMsgEnd > 0) ? lastMsgEnd + END_SEQUENCE.length() : 0;
+        unsigned long thisMsgEnd = data.find(END_SEQUENCE, thisMsgStart);
+        if (thisMsgEnd == std::string::npos) {
+            thisMsgEnd = data.length();
+        }
+        unsigned long thisMsgLength = thisMsgEnd - thisMsgStart;
+
+        std::string thisMsg = data.substr(thisMsgStart, thisMsgLength);
+        spdlog::info("Msg: {0}", thisMsg);
+        lastMsgEnd = thisMsgEnd;
+        //##############################################################################################################
+        //# Process current message
+        //##############################################################################################################
+        if (thisMsg.empty())
+            continue;
+
+        //Process each line of this message
+        std::string thisLine;
+        for (char const &c: thisMsg) {
+            thisLine.push_back(c);
+            if (c == END_OF_LINE && !thisLine.empty()) {
+                const auto &output = parseLine(thisLine);
+                if (output.has_value()) {
+                    outputMsgs.emplace_back(output.value());
+                }
+                spdlog::info("MsgLine: {0}", thisLine);
+                thisLine.clear();
+            }
+        }
+
+
+    }
+
+    //Return the vector of parsed messages, or nothing, if it's empty
+    if (outputMsgs.empty()) {
+        return std::nullopt;
+    }
+    return outputMsgs;
+}
+
+std::optional<ProtocolData> BufferedParser::parseLine(const std::string &data) {
     //######### ERROR CHECKING #########
     //##################################
-    if (currentLine.length() + data.length() > MAX_LINE_LENGTH) {
+    if (savedLine.length() + data.length() > MAX_LINE_LENGTH) {
         throw std::runtime_error("BufferedParser::parse: Error - max line length has been exceeded!");
     }
 
-    if (currentLineNum == 0 && currentLine.length() + data.length() > MAX_METHOD_NAME_LENGTH) {
+    if (savedLineNum == 0 && savedLine.length() + data.length() > MAX_METHOD_NAME_LENGTH) {
         throw std::runtime_error(
                 "BufferedParser::parse: Error - invalid msg format - method name cannot be longer than 32 chars.");
     }
 
     //######### BEGIN PARSING #########
     //#################################
-    currentLine += data;
+    savedLine += data;
     if (data.ends_with(END_OF_LINE)) {
         //Line is completed, parse it and return result
         switch (processLine()) {
@@ -42,10 +92,10 @@ std::optional<ProtocolData> BufferedParser::parse(const std::string &data) {
 }
 
 BufferedParser::ParsingStatus BufferedParser::processLine() {
-    if (currentLineNum == 0) {
+    if (savedLineNum == 0) {
         //Parsing first line of the protocol (MethodName)
-        trim(currentLine);
-        MethodName parsedName = parseMethodName(currentLine);
+        trim(savedLine);
+        MethodName parsedName = parseMethodName(savedLine);
         if (parsedName == MethodName::PARSING_FAILED)
             return ParsingStatus::INVALID_METHOD_NAME;
         else
@@ -53,17 +103,17 @@ BufferedParser::ParsingStatus BufferedParser::processLine() {
 
     } else {
         //Check for ending sequence
-        if (currentLine == END_OF_MESSAGE)
+        if (savedLine == END_SEQUENCE)
             return ParsingStatus::MESSAGE_PARSING_FINISHED;
 
         //Parse protocol "body" line (<ATTR_NAME>:<ATTR_VALUE>)
-        unsigned long delimiterLocation = currentLine.find_first_of(PROTOCOL_DELIMITER);
+        unsigned long delimiterLocation = savedLine.find_first_of(PROTOCOL_DELIMITER);
         if (delimiterLocation == std::string::npos) {
             throw std::runtime_error(
                     "BufferedParser::parse: Error - Protocol line doesn't contain the delimiter symbol!");
         }
-        std::string attrName = currentLine.substr(0, delimiterLocation - 1);
-        std::string attrValue = currentLine.substr(delimiterLocation + 1);
+        std::string attrName = savedLine.substr(0, delimiterLocation - 1);
+        std::string attrValue = savedLine.substr(delimiterLocation + 1);
         //Remove the last char (end of line symbol)
         attrValue.pop_back();
 
@@ -75,15 +125,15 @@ BufferedParser::ParsingStatus BufferedParser::processLine() {
 }
 
 void BufferedParser::startNewMessage() {
-    currentLine.clear();
-    currentLineNum = 0;
+    savedLine.clear();
+    savedLineNum = 0;
     processedMethodName = MethodName::UNINITIALIZED;
     processedData.clear();
 }
 
 void BufferedParser::startNewLine() {
-    currentLine.clear();
-    currentLineNum++;
+    savedLine.clear();
+    savedLineNum++;
 }
 
 void BufferedParser::trim(std::string &arg) {
