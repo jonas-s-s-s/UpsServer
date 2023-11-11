@@ -14,28 +14,24 @@ public:
     std::optional<std::vector<ProtocolData>> parse(const std::string &data);
 
 private:
-    int savedLineNum = 0;
+    //Temporary data about unprocessed messages
+    MethodName savedMethod = MethodName::UNINITIALIZED;
+    std::unordered_map<std::string, std::string> savedData{};
     std::string savedLine;
-    MethodName processedMethodName = MethodName::UNINITIALIZED;
-    std::unordered_map<std::string, std::variant<std::string, std::vector<std::string>>> processedData{};
-    enum class ParsingStatus {
-        MESSAGE_PARSING_FINISHED, MESSAGE_IS_INCOMPLETE, INVALID_METHOD_NAME
-    };
+    bool isSavedLineFirst = true;
 
-    std::optional<ProtocolData> parseLine(const std::string &data);
-    ParsingStatus processLine();
+    void parseMsgLines(const std::vector<std::string> &lines);
 
-    void startNewMessage();
-
-    void startNewLine();
-
-    static void trim(std::string &arg);
+    static std::vector<std::string> split(const std::string &s, const std::string &delimiter);
 
     //Circa 10 MB of data
     static constexpr int MAX_LINE_LENGTH = 10000000;
     static constexpr int MAX_METHOD_NAME_LENGTH = 32;
-    static constexpr std::string_view END_SEQUENCE = "\r\n\r\n";
-    static constexpr char PROTOCOL_DELIMITER = ':';
-    static constexpr char END_OF_LINE = '\n';
+    static constexpr const char *const END_SEQUENCE = "\r\n\r\n";
+    static constexpr int END_SEQUENCE_LEN = 4;
+    static constexpr const char *const LINE_DELIMITER = ":";
+    static constexpr const char *const END_OF_LINE = "\n";
+
+    void clearCache();
 };
 

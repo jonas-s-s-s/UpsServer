@@ -27,10 +27,9 @@ MethodName parseMethodName(const std::string &name);
 
 struct ProtocolData {
 public:
-    explicit ProtocolData(const MethodName method,
-                          const std::unordered_map<std::string, std::variant<std::string, std::vector<std::string>>> data)
+    explicit ProtocolData(const MethodName method, const std::unordered_map<std::string, std::string> data)
             : method(method), data(data) {}
 
     const MethodName method;
-    const std::unordered_map<std::string, std::variant<std::string, std::vector<std::string>>> data;
+    const std::unordered_map<std::string, std::string> data;
 };

@@ -2,3 +2,4 @@
 include(Testing)
 
 add_subdirectory(server)
+add_subdirectory(parser)
