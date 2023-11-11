@@ -11,6 +11,13 @@
 class BufferedParser {
 public:
 
+    /**
+     * "Greedy" parsing method. Can accept one message, multiple messages, several lines of message, etc.
+     * Returns a vector containing parsed messages. Incomplete message is stored for later in internal cache.
+     * If there is no complete message in input data, an empty optional is returned.
+     * Throws a runtime exception in case of a parsing error - protocol text is formatted incorrectly.
+     * @param data protocol text
+     */
     std::optional<std::vector<ProtocolData>> parse(const std::string &data);
 
 private:
@@ -22,6 +29,10 @@ private:
 
     void parseMsgLines(const std::vector<std::string> &lines);
 
+    /**
+     * Special split method
+     * @return Returns splitted strings which include separator
+     */
     static std::vector<std::string> split(const std::string &s, const std::string &delimiter);
 
     //Circa 10 MB of data
