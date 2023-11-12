@@ -2,7 +2,6 @@
 // Created by xPC on 12.11.2023.
 //
 
-#include <sys/epoll.h>
 #include <stdexcept>
 #include <utility>
 #include <fcntl.h>
@@ -54,13 +53,20 @@ void Epoll::waitForEvents() {
     }
 }
 
+/**
+ * ADD ONLY ONE eventId AT ONCE (TODO?)
+ */
 void Epoll::addEventHandler(int monitoredFd, uint32_t eventId, std::function<void(int)> eventHandler) {
     MonitoredDescriptor &fd = monitoredFds.at(monitoredFd);
     if (!fd.isInitialized) {
         fd.isInitialized = true;
+        //Better solution than alreadyMonitoredEvents?
+        fd.alreadyMonitoredEvents = eventId;
         _epollCtlAdd(monitoredFd, eventId);
     } else {
-        _epollCtlModify(monitoredFd, eventId);
+        //Better solution than alreadyMonitoredEvents?
+        fd.alreadyMonitoredEvents = fd.alreadyMonitoredEvents | eventId;
+        _epollCtlModify(monitoredFd, fd.alreadyMonitoredEvents);
     }
 
     fd.handledEvents[eventId] = std::move(eventHandler);
@@ -83,6 +89,9 @@ int Epoll::getIsEdgeTriggered() const {
     return isEdgeTriggered;
 }
 
+/**
+ * ADDS events to a NEW fd. If the FD is not new, _epollCtlModify must be used instead.
+ */
 void Epoll::_epollCtlAdd(int fd, uint32_t events) const {
     struct epoll_event ev{};
 
@@ -97,10 +106,18 @@ void Epoll::_epollCtlAdd(int fd, uint32_t events) const {
     }
 }
 
+/**
+ * REWRITES the events of certain FD. All previously added events will be REMOVED.
+ */
 void Epoll::_epollCtlModify(int fd, uint32_t events) const {
-    //TODO: IS THIS WORKING?
+    //TODO: Improve?
     struct epoll_event ev{};
-    ev.events = events;
+
+    if (isEdgeTriggered)
+        ev.events = events | EPOLLET;
+    else
+        ev.events = events;
+
     ev.data.fd = fd;
     if (epoll_ctl(epollFd, EPOLL_CTL_MOD, fd, &ev) == -1) {
         throw std::runtime_error("Epoll::_epollCtlModify: ERROR - Failed modifying file descriptor events.");

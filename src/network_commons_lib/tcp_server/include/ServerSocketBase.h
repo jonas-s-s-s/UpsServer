@@ -18,7 +18,7 @@ private:
 
     std::thread acceptThread;
 
-    virtual void newClientConnectedHandler(int clientSocket) = 0;
+    virtual void _newClientConnectedHandler(int clientSocket) = 0;
 
 public:
     ServerSocketBase(const std::string &address, uint16_t port);

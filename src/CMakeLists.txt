@@ -1,6 +1,6 @@
 add_subdirectory(utils)
-add_subdirectory(linux_abstractions_lib)
-add_subdirectory(network_abstractions_lib)
+add_subdirectory(linux_commons_lib)
+add_subdirectory(network_commons_lib)
 add_subdirectory(game_server_logic)
 
 add_executable(main main.cpp)

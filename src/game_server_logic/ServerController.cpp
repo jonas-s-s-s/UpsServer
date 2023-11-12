@@ -15,7 +15,9 @@ void ServerController::start() {
 
     TcpGameServer gameServer{serverConfig.serverIp, serverConfig.serverPort};
 
-    IdleUsersRoom idleUsersRoom{gameServer.getClientSocketQ()};
+    IdleUsersRoom idleUsersRoom{gameServer.getNewClientsQueue()};
+    idleUsersRoom.startIdleThread();
 
     gameServer.joinOnAcceptThread();
+    idleUsersRoom.joinOnIdleThread();
 }

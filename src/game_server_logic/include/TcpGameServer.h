@@ -11,10 +11,10 @@ class TcpGameServer : public ServerSocketBase {
 public:
     TcpGameServer(const std::string &address, uint16_t port);
 
-    EventfdQueue<int> &getClientSocketQ();
+    EventfdQueue<int> &getNewClientsQueue();
 
 private:
-    void newClientConnectedHandler(int clientSocket) override;
+    void _newClientConnectedHandler(int clientSocket) override;
 
-    EventfdQueue<int> clientSocketQ{};
+    EventfdQueue<int> _newClientsQueue{};
 };

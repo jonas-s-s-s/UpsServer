@@ -7,6 +7,7 @@
 #include <set>
 #include <unordered_map>
 #include <functional>
+#include <sys/epoll.h>
 
 class MonitoredDescriptor {
 public:
@@ -14,7 +15,8 @@ public:
 
     bool isInitialized = false;
     const int monitoredFd;
-    std::unordered_map<uint32_t, std::function<void(int)>> handledEvents{};
+    uint32_t alreadyMonitoredEvents; //could be determined by already handled events?
+    std::unordered_map<uint32_t, std::function<void(int)>> handledEvents{}; //Can be replaced with 6 attributes / array?
 };
 
 class Epoll {

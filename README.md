@@ -4,8 +4,8 @@ Server UPS semestrálka C++ ZS2023
 
 ## TCP accept thread
 1) Accept incoming TCP connection (ServerSocketBase)
-2) Passes client File descriptor to newClientConnectedHandler (ServerSocketBase)
-3) File descriptor is received in newClientConnectedHandler (TcpGameServer)
+2) Passes client File descriptor to _newClientConnectedHandler (ServerSocketBase)
+3) File descriptor is received in _newClientConnectedHandler (TcpGameServer)
 4) File descriptor is passed via ~~PIPE?~~ to Idle thread
 
 ## Idle thread

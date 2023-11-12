@@ -50,7 +50,7 @@ void ServerSocketBase::tcpAcceptLoop() {
 
         if (clientSock > 0) {
             spdlog::info("A new TCP client FD{0} connected to server FD{1}", clientSock, std::to_string(serverSocket));
-            newClientConnectedHandler(clientSock);
+            _newClientConnectedHandler(clientSock);
         } else {
             //TODO: Remove this throw?
             throw std::runtime_error(
