@@ -52,6 +52,7 @@ void ServerSocketBase::tcpAcceptLoop() {
             spdlog::info("A new TCP client FD{0} connected to server FD{1}", clientSock, std::to_string(serverSocket));
             newClientConnectedHandler(clientSock);
         } else {
+            //TODO: Remove this throw?
             throw std::runtime_error(
                     "Fatal error in accept loop of server socket FD" + std::to_string(serverSocket) +
                     " TCP accept failed.");

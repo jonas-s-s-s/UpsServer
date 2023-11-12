@@ -6,6 +6,7 @@
 #include "ServerConfig.h"
 #include "spdlog/spdlog.h"
 #include "TcpGameServer.h"
+#include "IdleUsersRoom.h"
 
 void ServerController::start() {
     ServerConfig serverConfig{"./server_config.txt"};
@@ -14,6 +15,7 @@ void ServerController::start() {
 
     TcpGameServer gameServer{serverConfig.serverIp, serverConfig.serverPort};
 
+    IdleUsersRoom idleUsersRoom{gameServer.getClientSocketQ()};
 
     gameServer.joinOnAcceptThread();
 }
