@@ -20,6 +20,8 @@ void Epoll::addDescriptor(int fd) {
 
     if (isEdgeTriggered) {
         _setNonBlocking(fd);
+        //Set the EPOLLET flag for edge triggered
+        monitoredFds.at(fd).alreadyMonitoredEvents = EPOLLET;
     }
 }
 
