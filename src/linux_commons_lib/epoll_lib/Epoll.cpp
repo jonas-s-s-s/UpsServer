@@ -15,6 +15,7 @@ Epoll::Epoll(bool isEdgeTriggered) : _epollFd(epoll_create1(0)), _isEdgeTriggere
     _eventsVector.reserve(_maxEventsNum * sizeof(epoll_event));
 }
 
+//# Epoll class public interface
 //######################################################################################################################
 
 void Epoll::addDescriptor(int fd) {
@@ -54,39 +55,38 @@ void Epoll::waitForEvents() {
     }
 }
 
-/**
- * ADD ONLY ONE eventId AT ONCE (TODO?)
- */
-void Epoll::addEventHandler(int monitoredFd, uint32_t eventId, std::function<void(int)> eventHandler) {
-    MonitoredDescriptor &fd = _monitoredFds.at(monitoredFd);
-    if (!fd.isInitialized) {
-        fd.isInitialized = true;
-        //Better solution than alreadyMonitoredEvents?
-        fd.alreadyMonitoredEvents = eventId;
-        _epollCtlAdd(monitoredFd, eventId);
-    } else {
-        //Better solution than alreadyMonitoredEvents?
-        fd.alreadyMonitoredEvents = fd.alreadyMonitoredEvents | eventId;
-        _epollCtlModify(monitoredFd, fd.alreadyMonitoredEvents);
-    }
+void Epoll::addEventHandler(int monitoredFd, uint32_t eventType, std::function<void(int)> eventHandler) {
+    MonitoredDescriptor &md = _monitoredFds.at(monitoredFd);
 
-    fd.handledEvents[eventId] = std::move(eventHandler);
-}
-
-void Epoll::removeEventHandler(int monitoredFd, uint32_t eventType) {
     //Check for all possible event types
     for (uint32_t evt: allEventTypes) {
-        //Check if the handler for this event exists
-        if (_monitoredFds.at(monitoredFd).hasHandler(eventType & evt)) {
-            //remove the handler function TODO
-            _monitoredFds.at(monitoredFd).setHandler(eventType & evt, nullptr);
+        if (eventType & evt) {
+            //Set the handler, if eventType includes this evt
+            md.setHandler(evt, eventHandler);
         }
     }
 
-    //TODO: System call to remove event listening from this fd?
-    _monitoredFds.at(monitoredFd).handledEvents.erase(eventType);
+    //After all handlers are set, register the events for listening with the OS kernel
+    _reloadEventHandlers(md);
 }
 
+void Epoll::removeEventHandler(int monitoredFd, uint32_t eventType) {
+    auto &md = _monitoredFds.at(monitoredFd);
+
+    //Check for all possible event types
+    for (uint32_t evt: allEventTypes) {
+        //Check if the handler for this event exists
+        if (md.hasHandler(eventType & evt)) {
+            //remove the handler function
+            md.setHandler(eventType & evt, nullptr);
+        }
+    }
+
+    //Make sure that removed events aren't listened for by the OS kernel
+    _reloadEventHandlers(md);
+}
+
+//# Epoll class getters
 //######################################################################################################################
 
 const std::unordered_map<int, MonitoredDescriptor> &Epoll::getMonitoredFds() const {
@@ -101,15 +101,41 @@ int Epoll::getIsEdgeTriggered() const {
     return _isEdgeTriggered;
 }
 
+//# Epoll class private members
 //######################################################################################################################
 
-void Epoll::_reloadEventHandlers(MonitoredDescriptor &monitoredDescriptor) {
+void Epoll::_reloadEventHandlers(MonitoredDescriptor &md) const {
+    uint32_t resultingEvents = 0;
 
+    //Construct a resultingEvents variable for all registered event handlers of monitoredDescriptor
+    bool firstEvt = true;
+    for (uint32_t evt: allEventTypes) {
+        if (md.hasHandler(evt)) {
+            if (firstEvt) {
+                resultingEvents = evt;
+                firstEvt = false;
+            } else {
+                resultingEvents |= evt;
+            }
+        }
+    }
+
+    if (_isEdgeTriggered) {
+        if (firstEvt)
+            resultingEvents = EPOLLET;
+        else
+            resultingEvents |= EPOLLET;
+    }
+
+    //"EPOLL_CTL_ADD" can be called for a single FD only once
+    if (md.isInitialized) {
+        _epollCtlModify(md.monitoredFd, resultingEvents);
+    } else {
+        _epollCtlAdd(md.monitoredFd, resultingEvents);
+        md.isInitialized = true;
+    }
 }
 
-/**
- * ADDS events to a NEW fd. If the FD is not new, _epollCtlModify must be used instead.
- */
 void Epoll::_epollCtlAdd(int fd, uint32_t events) const {
     struct epoll_event ev{};
     ev.events = events;
@@ -119,9 +145,6 @@ void Epoll::_epollCtlAdd(int fd, uint32_t events) const {
     }
 }
 
-/**
- * REWRITES the events of certain FD. All previously added events will be REMOVED.
- */
 void Epoll::_epollCtlModify(int fd, uint32_t events) const {
     struct epoll_event ev{};
     ev.events = events;
@@ -143,11 +166,11 @@ void Epoll::_epollCtlDelete(int fd) const {
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &ev);
 }
 
+//# MonitoredDescriptor members
 //######################################################################################################################
 
 MonitoredDescriptor::MonitoredDescriptor(int monitoredFd) : monitoredFd(monitoredFd) {
 }
-
 
 bool MonitoredDescriptor::hasHandler(uint32_t eventType) const {
     switch (eventType) {
