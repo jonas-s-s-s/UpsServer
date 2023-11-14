@@ -11,14 +11,31 @@
 #include <unordered_map>
 
 enum class MethodName {
+    //Fundamental methods
     CONNECTED_OK,
+    REQ_ACCEPTED,
+    REQ_DENIED,
+    TERMINATE_CONNECTION,
+    //Placeholder values
     PARSING_FAILED,
-    UNINITIALIZED
+    UNINITIALIZED,
+    //Idle user's room methods
+    ENTER_USERNAME,
+    GET_ROOM_LIST,
+    JOIN_GAME,
+    //Game methods
+
 };
 static std::unordered_map<std::string, MethodName> const MethodNameTable = {
         {"CONNECTED_OK", MethodName::CONNECTED_OK},
+        {"REQ_ACCEPTED", MethodName::REQ_ACCEPTED},
+        {"REQ_DENIED", MethodName::REQ_DENIED},
+        {"TERMINATE_CONNECTION", MethodName::TERMINATE_CONNECTION},
         {"PARSING_FAILED", MethodName::PARSING_FAILED},
-        {"UNINITIALIZED", MethodName::UNINITIALIZED}
+        {"UNINITIALIZED", MethodName::UNINITIALIZED},
+        {"ENTER_USERNAME", MethodName::ENTER_USERNAME},
+        {"GET_ROOM_LIST", MethodName::GET_ROOM_LIST},
+        {"JOIN_GAME", MethodName::JOIN_GAME}
 };
 
 /**
