@@ -27,15 +27,15 @@ enum class MethodName {
 
 };
 static std::unordered_map<std::string, MethodName> const MethodNameTable = {
-        {"CONNECTED_OK", MethodName::CONNECTED_OK},
-        {"REQ_ACCEPTED", MethodName::REQ_ACCEPTED},
-        {"REQ_DENIED", MethodName::REQ_DENIED},
+        {"CONNECTED_OK",         MethodName::CONNECTED_OK},
+        {"REQ_ACCEPTED",         MethodName::REQ_ACCEPTED},
+        {"REQ_DENIED",           MethodName::REQ_DENIED},
         {"TERMINATE_CONNECTION", MethodName::TERMINATE_CONNECTION},
-        {"PARSING_FAILED", MethodName::PARSING_FAILED},
-        {"UNINITIALIZED", MethodName::UNINITIALIZED},
-        {"ENTER_USERNAME", MethodName::ENTER_USERNAME},
-        {"GET_ROOM_LIST", MethodName::GET_ROOM_LIST},
-        {"JOIN_GAME", MethodName::JOIN_GAME}
+        {"PARSING_FAILED",       MethodName::PARSING_FAILED},
+        {"UNINITIALIZED",        MethodName::UNINITIALIZED},
+        {"ENTER_USERNAME",       MethodName::ENTER_USERNAME},
+        {"GET_ROOM_LIST",        MethodName::GET_ROOM_LIST},
+        {"JOIN_GAME",            MethodName::JOIN_GAME}
 };
 
 /**
@@ -61,10 +61,20 @@ public:
 
     const MethodName method;
     const std::unordered_map<std::string, std::string> data;
+    bool hasField(const std::string& name) const;
+    std::string getField(const std::string& name) const;
 };
 
 /**
  * Converts ProtocolData to string representation.
  * @return String, runtime_error is thrown in case or serialization failure
  */
-std::string serializeProtocolData(const ProtocolData& data);
+std::string serializeProtocolData(const ProtocolData &data);
+
+/**
+ * Factory function for the ProtocolData class
+ */
+ProtocolData
+newProtocolMessage(MethodName method, std::initializer_list<std::pair<std::string, std::string>> dataFields);
+
+ProtocolData newProtocolMessage(MethodName method);

@@ -1,2 +1,3 @@
-add_library(protocol BufferedParser.cpp ProtocolData.cpp)
+add_library(protocol BufferedParser.cpp ProtocolData.cpp ProtocolClient.cpp)
 target_include_directories(protocol PUBLIC include)
+target_link_libraries(protocol tcp_client)

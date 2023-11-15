@@ -27,8 +27,10 @@ void Epoll::addDescriptor(int fd) {
 }
 
 void Epoll::removeDescriptor(int monitoredFd) {
-    _epollCtlDelete(monitoredFd);
-    _monitoredFds.erase(monitoredFd);
+    if (_monitoredFds.count(monitoredFd) != 0) {
+        _epollCtlDelete(monitoredFd);
+        _monitoredFds.erase(monitoredFd);
+    }
 }
 
 void Epoll::waitForEvents() {
@@ -41,6 +43,10 @@ void Epoll::waitForEvents() {
 
         //Check for all possible event types
         for (uint32_t evt: allEventTypes) {
+            //The monitored descriptor can be removed during the event handling process, protect against this
+            if (_monitoredFds.count(fd) == 0)
+                return;
+
             //Check if the handler for this event exists
             if (_monitoredFds.at(fd).hasHandler(events & evt)) {
                 //Call the handler function

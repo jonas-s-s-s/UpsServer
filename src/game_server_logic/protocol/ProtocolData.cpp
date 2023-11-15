@@ -4,6 +4,14 @@
 #include <stdexcept>
 #include "ProtocolData.h"
 
+bool ProtocolData::hasField(const std::string &name) const {
+    return data.count(name) >= 1;
+}
+
+std::string ProtocolData::getField(const std::string &name) const {
+    return data.at(name);
+}
+
 MethodName parseMethodName(const std::string &name) {
     auto it = MethodNameTable.find(name);
     if (it != MethodNameTable.end()) {
@@ -55,3 +63,17 @@ std::string serializeProtocolData(const ProtocolData &data) {
     output.append(END_SEQUENCE);
     return output;
 }
+
+ProtocolData
+newProtocolMessage(MethodName method, std::initializer_list<std::pair<std::string, std::string>> dataFields) {
+    std::unordered_map<std::string, std::string> data;
+    for (std::pair<std::string, std::string> pair: dataFields) {
+        data.insert(pair);
+    }
+    return ProtocolData(method, std::move(data));
+}
+
+ProtocolData newProtocolMessage(MethodName method) {
+    return ProtocolData(method, std::unordered_map<std::string, std::string>());
+}
+

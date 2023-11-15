@@ -17,10 +17,9 @@ std::string SocketBase::receiveData() const {
     std::string rcv;
     std::vector<char> buffer(MAX_BUF_LENGTH);
 
-    //Will block and receive bytes until system receive buffer has data available
     bytesReceived = recv(this->socketFd, &buffer[0], buffer.size(), 0);
     if (bytesReceived == -1) {
-        throw std::runtime_error("Failed to receive data from server. (FD" + std::to_string(this->socketFd) + ")");
+        throw std::runtime_error("Failed to receive data on this socket. (FD" + std::to_string(this->socketFd) + ")");
     } else {
         rcv.append(buffer.cbegin(), buffer.cbegin() + bytesReceived);
         spdlog::trace("Received data on socket FD{0} data: {1}, received bytes: {2}", this->socketFd, rcv,
