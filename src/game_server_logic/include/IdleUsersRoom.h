@@ -11,7 +11,7 @@
 
 class IdleUsersRoom {
 public:
-    explicit IdleUsersRoom(EventfdQueue<int> &newClientsQ);
+    explicit IdleUsersRoom(EventfdQueue<int> &newClientsQueue, unsigned int roomCount, unsigned int maxPlayerCount);
 
     void startIdleThread();
 
@@ -20,12 +20,15 @@ public:
 private:
     //The maximal amount of invalid requests, after which we'll disconnect the client
     static constexpr int MAX_REQ_DENIED_CNT = 5;
+    const unsigned int _roomCount;
+    const unsigned int _maxPlayerCount;
+
     //The epoll object used by this room
     Epoll _epoll{true};
 
     void _idleThreadLoop();
 
-    void _processClientMessage(const ProtocolData& msg, ProtocolClient& client);
+    void _processClientMessage(const ProtocolData &msg, ProtocolClient &client);
 
     ProtocolData _getRoomList();
 

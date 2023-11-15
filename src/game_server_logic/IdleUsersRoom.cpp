@@ -9,7 +9,8 @@
 #include "Epoll.h"
 #include "spdlog/spdlog.h"
 
-IdleUsersRoom::IdleUsersRoom(EventfdQueue<int> &newClientsQueue) : _newClientsQueue(newClientsQueue) {}
+IdleUsersRoom::IdleUsersRoom(EventfdQueue<int> &newClientsQueue, unsigned int roomCount, unsigned int maxPlayerCount) : _roomCount(
+        roomCount), _maxPlayerCount(maxPlayerCount), _newClientsQueue(newClientsQueue) {}
 
 void IdleUsersRoom::startIdleThread() {
     _idleThread = std::thread(&IdleUsersRoom::_idleThreadLoop, this);
@@ -104,18 +105,26 @@ void IdleUsersRoom::_onNewClientConnect(int evfd) {
     //Capture write and disconnect events of any new client
     while (!this->_newClientsQueue.isEmpty()) {
         int clientfd = this->_newClientsQueue.pop();
-        _epoll.addDescriptor(clientfd);
 
+        //Create the object representing this client
+        clientsMap[clientfd] = std::make_unique<ProtocolClient>(clientfd);
+
+        //To prevent exceeding the player limit possible solution is to disconnect
+        if (clientsMap.size() > _maxPlayerCount) {
+            spdlog::warn("IdleUsersRoom::_onNewClientConnect: WARNING - MAX PLAYER COUNT EXCEEDED. REMOVING CLIENT.");
+            _onClientDisconnect(clientfd);
+            continue;
+        }
+
+        //Register this client with epoll
+        _epoll.addDescriptor(clientfd);
         _epoll.addEventHandler(clientfd, EPOLLIN, [this](int client) {
             _onClientWrite(client);
         });
-
         _epoll.addEventHandler(clientfd, EPOLLRDHUP | EPOLLHUP, [this](int client) {
             _onClientDisconnect(client);
         });
 
-        //Create the object representing this client
-        clientsMap[clientfd] = std::make_unique<ProtocolClient>(clientfd);
         clientsMap[clientfd]->sendMsg(newProtocolMessage(MethodName::CONNECTED_OK));
     }
 }
