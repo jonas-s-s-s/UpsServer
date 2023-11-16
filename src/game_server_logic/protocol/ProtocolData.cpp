@@ -64,6 +64,33 @@ std::string serializeProtocolData(const ProtocolData &data) {
     return output;
 }
 
+std::string serializeObjectList(const std::vector<std::vector<std::string>> &list) {
+    std::string output;
+
+    bool isFistLine = true;
+    for (const std::vector<std::string>& line: list) {
+        if(isFistLine) {
+            isFistLine = false;
+        } else {
+            output += ",";
+        }
+
+        bool isFistItem = true;
+        output += "{";
+        for (const std::string& lineItem: line) {
+            if(isFistItem) {
+                isFistItem = false;
+            } else {
+                output += ",";
+            }
+            output += lineItem;
+        }
+        output += "}";
+    }
+    return output;
+}
+
+
 ProtocolData
 newProtocolMessage(MethodName method, std::initializer_list<std::pair<std::string, std::string>> dataFields) {
     std::unordered_map<std::string, std::string> data;
@@ -76,4 +103,6 @@ newProtocolMessage(MethodName method, std::initializer_list<std::pair<std::strin
 ProtocolData newProtocolMessage(MethodName method) {
     return ProtocolData(method, std::unordered_map<std::string, std::string>());
 }
+
+
 

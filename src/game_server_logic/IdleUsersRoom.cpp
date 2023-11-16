@@ -9,8 +9,15 @@
 #include "Epoll.h"
 #include "spdlog/spdlog.h"
 
-IdleUsersRoom::IdleUsersRoom(EventfdQueue<int> &newClientsQueue, unsigned int roomCount, unsigned int maxPlayerCount) : _roomCount(
-        roomCount), _maxPlayerCount(maxPlayerCount), _newClientsQueue(newClientsQueue) {}
+IdleUsersRoom::IdleUsersRoom(EventfdQueue<int> &newClientsQueue, unsigned int roomCount, unsigned int maxPlayerCount)
+        : _roomCount(roomCount), _maxPlayerCount(maxPlayerCount), _newClientsQueue(newClientsQueue) {
+
+    //Create room objects depending on the room count
+    for (int i = 1; i <= roomCount; ++i) {
+        _gameRooms[i] = std::make_unique<GameRoom>(i);
+    }
+
+}
 
 void IdleUsersRoom::startIdleThread() {
     _idleThread = std::thread(&IdleUsersRoom::_idleThreadLoop, this);
@@ -78,8 +85,16 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData &msg, ProtocolClien
 }
 
 ProtocolData IdleUsersRoom::_getRoomList() {
-    //TODO: Implement this function
-    return newProtocolMessage(MethodName::REQ_ACCEPTED);
+    std::vector<std::vector<std::string>> roomList;
+    for (auto const &[roomId, roomPtr]: _gameRooms) {
+        std::vector<std::string> line;
+        auto users = roomPtr->getUsers();
+        line.emplace_back(users.first);
+        line.emplace_back(users.second);
+        line.emplace_back(std::to_string(roomPtr->getGameState()));
+        roomList.emplace_back(line);
+    }
+    return newProtocolMessage(MethodName::REQ_ACCEPTED, {{"room_list", serializeObjectList(roomList)}});
 }
 
 void IdleUsersRoom::_denyRequest(ProtocolClient &client) {
@@ -107,10 +122,10 @@ void IdleUsersRoom::_onNewClientConnect(int evfd) {
         int clientfd = this->_newClientsQueue.pop();
 
         //Create the object representing this client
-        clientsMap[clientfd] = std::make_unique<ProtocolClient>(clientfd);
+        _clientsMap[clientfd] = std::make_unique<ProtocolClient>(clientfd);
 
         //To prevent exceeding the player limit possible solution is to disconnect
-        if (clientsMap.size() > _maxPlayerCount) {
+        if (_clientsMap.size() > _maxPlayerCount) {
             spdlog::warn("IdleUsersRoom::_onNewClientConnect: WARNING - MAX PLAYER COUNT EXCEEDED. REMOVING CLIENT.");
             _onClientDisconnect(clientfd);
             continue;
@@ -125,7 +140,7 @@ void IdleUsersRoom::_onNewClientConnect(int evfd) {
             _onClientDisconnect(client);
         });
 
-        clientsMap[clientfd]->sendMsg(newProtocolMessage(MethodName::CONNECTED_OK));
+        _clientsMap[clientfd]->sendMsg(newProtocolMessage(MethodName::CONNECTED_OK));
     }
 }
 
@@ -133,7 +148,7 @@ void IdleUsersRoom::_onClientWrite(int clientfd) {
     spdlog::info("IdleUsersRoom::_onClientWrite: Client FD{0} is ready for reading.", clientfd);
 
     std::optional<std::vector<ProtocolData>> messages;
-    const auto &client = clientsMap.at(clientfd);
+    const auto &client = _clientsMap.at(clientfd);
 
     //Catch any parsing exception which can be thrown by client
     try {
@@ -166,5 +181,5 @@ void IdleUsersRoom::_onClientDisconnect(int clientfd) {
     //Remove the socket from our epoll
     _epoll.removeDescriptor(clientfd);
     //Remove client's object - SocketBase destructor will close the TCP socket
-    clientsMap.erase(clientfd);
+    _clientsMap.erase(clientfd);
 }

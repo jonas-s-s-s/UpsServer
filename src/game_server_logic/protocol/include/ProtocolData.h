@@ -54,6 +54,13 @@ MethodName parseMethodName(const std::string &name);
  */
 std::string serializeMethodName(MethodName name);
 
+/**
+ * Serializes a list of objects into string.
+ * Format of the output is:
+ * {list1[0],list1[1],...,list1[n]},{list2[0],list2[1],...,list2[n]}...
+ */
+std::string serializeObjectList(const std::vector<std::vector<std::string>>& list);
+
 struct ProtocolData {
 public:
     explicit ProtocolData(const MethodName method, const std::unordered_map<std::string, std::string> data)
@@ -78,3 +85,4 @@ ProtocolData
 newProtocolMessage(MethodName method, std::initializer_list<std::pair<std::string, std::string>> dataFields);
 
 ProtocolData newProtocolMessage(MethodName method);
+

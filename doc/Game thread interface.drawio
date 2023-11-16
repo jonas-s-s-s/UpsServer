@@ -1,0 +1,37 @@
+<mxfile host="Electron" modified="2023-11-16T15:27:32.196Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="s6EE10E3tG6WM7UidbQN" version="22.0.3" type="device">
+  <diagram name="Page-1" id="tYWZvGNclY6xIftsGjXz">
+    <mxGraphModel dx="762" dy="396" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-1" value="Game thread" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="320" y="310" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-2" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;width=32;endSize=6.38;entryX=0;entryY=0;entryDx=0;entryDy=35;entryPerimeter=0;" parent="1" target="hFc6G-UIWRJJw7CSZIBR-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="100" y="345" as="sourcePoint" />
+            <mxPoint x="270" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-3" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;width=32;endSize=6.38;entryX=0;entryY=0;entryDx=0;entryDy=35;entryPerimeter=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="540" y="354.66" as="sourcePoint" />
+            <mxPoint x="760" y="354.66" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-4" value="Input sent from Idle thread" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="130" y="250" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-5" value="Output sent to Idle thread" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="570" y="250" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-6" value="Needs to:&lt;br&gt;&lt;ul&gt;&lt;li&gt;Send ProtocolClient objects to game thread -&amp;gt; user either join a game or rejoins after disconnect&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="410" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="hFc6G-UIWRJJw7CSZIBR-7" value="Needs to:&lt;br&gt;&lt;ul&gt;&lt;li&gt;&lt;font color=&quot;#ff3333&quot;&gt;Sends back event when game ends &lt;/font&gt;(includes ProtocolClient objects) - idle thread puts clients into its epoll and changes game state in its unordered map. Special case is when game ended because both clients left.&amp;nbsp;&lt;/li&gt;&lt;li&gt;&lt;font color=&quot;#ff3333&quot;&gt;Send back event when game is paused&lt;/font&gt; because one of the users left. Idle thread puts paused game id into unordered_set and changes game state in its hashmap&lt;/li&gt;&lt;li&gt;Possible event when user leaves &lt;b&gt;idle game?&lt;/b&gt;&lt;/li&gt;&lt;li&gt;-&lt;/li&gt;&lt;li&gt;Při spuštění idle thread jsou všechny game objekty vytvořeny jako &lt;b&gt;idle&lt;/b&gt;, při vytvoření game vlákna se nejdřív jen pošle klient vláknu, když posíláme druhého klienta, tak změníme stav na &lt;b&gt;running. &lt;/b&gt;Pak se stav game objektu mění jen při vyvolání jednoho ze&lt;b&gt;&amp;nbsp;&lt;/b&gt;eventů hry&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="542" y="410" width="220" height="360" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

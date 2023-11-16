@@ -8,6 +8,7 @@
 #include "EventfdQueue.h"
 #include "Epoll.h"
 #include "ProtocolClient.h"
+#include "RoomStructs.h"
 
 class IdleUsersRoom {
 public:
@@ -46,5 +47,11 @@ private:
     std::thread _idleThread;
 
     //State fields
-    std::unordered_map<int, std::unique_ptr<ProtocolClient>> clientsMap;
+    //##################################################################################################################
+    //Contains pointer to every client who is in the idle room
+    std::unordered_map<int, std::unique_ptr<ProtocolClient>> _clientsMap;
+    //Should be initialized with _roomCount objects when idle room is constructed
+    std::map<int, std::unique_ptr<GameRoom>> _gameRooms;
+    //Pointers to paused games are written here, so they can be searched when client reconnects (no need for smart ptr here)
+    std::unordered_set<GameRoom *> _pausedGameRooms;
 };
