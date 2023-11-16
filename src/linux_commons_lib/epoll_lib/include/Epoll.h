@@ -106,6 +106,9 @@ private:
     static void _setNonBlocking(int fd);
 
     void _epollCtlDelete(int fd) const;
+
+public:
+    virtual ~Epoll();
 };
 
 

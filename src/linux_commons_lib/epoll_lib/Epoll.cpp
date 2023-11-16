@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <utility>
 #include <fcntl.h>
+#include <unistd.h>
 #include "Epoll.h"
 
 Epoll::Epoll(bool isEdgeTriggered) : _epollFd(epoll_create1(0)), _isEdgeTriggered(isEdgeTriggered) {
@@ -13,6 +14,10 @@ Epoll::Epoll(bool isEdgeTriggered) : _epollFd(epoll_create1(0)), _isEdgeTriggere
     }
 
     _eventsVector.reserve(_maxEventsNum * sizeof(epoll_event));
+}
+
+Epoll::~Epoll() {
+    close(_epollFd);
 }
 
 //# Epoll class public interface
