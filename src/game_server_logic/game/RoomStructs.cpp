@@ -37,6 +37,35 @@ std::pair<std::string, std::string> GameRoom::getUsers() {
     return {usernameA, usernameB};
 }
 
+const unsigned int GameRoom::getRoomId() const {
+    return roomId;
+}
+
+void GameRoom::addUser(const std::string &username) {
+    if (getUserCount() >= 2) {
+        throw std::runtime_error(
+                "GameRoom::addUser: ERROR - Cannot add user " + username + " this game already has 2 players!");
+    }
+
+    if(usernameA.empty())
+        usernameA = username;
+    else
+        usernameB = username;
+}
+
+ EventfdQueue<std::unique_ptr<ProtocolClient>> &GameRoom::getGameInput() {
+    return gameInput;
+}
+
+ EventfdQueue<GameStateChange> &GameRoom::getGameOutput() {
+    return gameOutput;
+}
+
+void GameRoom::removeAllUsers() {
+    usernameA = "";
+    usernameB = "";
+}
+
 GameStateChange::GameStateChange(const GameState newState) : newState(newState) {}
 
 GameStateChange::GameStateChange(const GameState newState,

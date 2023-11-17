@@ -24,7 +24,8 @@ enum class MethodName {
     GET_ROOM_LIST,
     JOIN_GAME,
     //Game methods
-
+    GAME_IDLE,
+    GAME_JOINED_OK
 };
 static std::unordered_map<std::string, MethodName> const MethodNameTable = {
         {"CONNECTED_OK",         MethodName::CONNECTED_OK},
@@ -35,7 +36,10 @@ static std::unordered_map<std::string, MethodName> const MethodNameTable = {
         {"UNINITIALIZED",        MethodName::UNINITIALIZED},
         {"ENTER_USERNAME",       MethodName::ENTER_USERNAME},
         {"GET_ROOM_LIST",        MethodName::GET_ROOM_LIST},
-        {"JOIN_GAME",            MethodName::JOIN_GAME}
+        {"JOIN_GAME",            MethodName::JOIN_GAME},
+        {"GAME_IDLE",            MethodName::GAME_IDLE},
+        {"GAME_JOINED_OK",       MethodName::GAME_JOINED_OK}
+
 };
 
 /**
@@ -59,7 +63,7 @@ std::string serializeMethodName(MethodName name);
  * Format of the output is:
  * {list1[0],list1[1],...,list1[n]},{list2[0],list2[1],...,list2[n]}...
  */
-std::string serializeObjectList(const std::vector<std::vector<std::string>>& list);
+std::string serializeObjectList(const std::vector<std::vector<std::string>> &list);
 
 struct ProtocolData {
 public:
@@ -68,8 +72,10 @@ public:
 
     const MethodName method;
     const std::unordered_map<std::string, std::string> data;
-    bool hasField(const std::string& name) const;
-    std::string getField(const std::string& name) const;
+
+    bool hasField(const std::string &name) const;
+
+    std::string getField(const std::string &name) const;
 };
 
 /**

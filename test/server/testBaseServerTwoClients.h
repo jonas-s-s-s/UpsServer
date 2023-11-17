@@ -9,7 +9,7 @@
 #include "ServerController.h"
 #include "ClientSocket.h"
 
-class testBaseServerOneClient : public ::testing::Test {
+class testBaseServerTwoClients : public ::testing::Test {
 protected:
 public:
 
@@ -26,5 +26,6 @@ public:
     }
 
 protected:
-    ClientSocket* client;
+    ClientSocket* client1;
+    ClientSocket* client2;
 };

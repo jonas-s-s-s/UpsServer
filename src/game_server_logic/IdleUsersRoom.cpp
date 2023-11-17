@@ -8,12 +8,13 @@
 #include "ServerSocketBase.h"
 #include "Epoll.h"
 #include "spdlog/spdlog.h"
+#include "Game.h"
 
 IdleUsersRoom::IdleUsersRoom(EventfdQueue<int> &newClientsQueue, unsigned int roomCount, unsigned int maxPlayerCount)
         : _roomCount(roomCount), _maxPlayerCount(maxPlayerCount), _newClientsQueue(newClientsQueue) {
 
     //Create room objects depending on the room count
-    for (int i = 1; i <= roomCount; ++i) {
+    for (int i = 1; i <= _roomCount; ++i) {
         _gameRooms[i] = std::make_unique<GameRoom>(i);
     }
 
@@ -56,9 +57,8 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData &msg, ProtocolClien
             _onClientDisconnect(client.getClientFd());
             return;
         case MethodName::ENTER_USERNAME:
-            if (msg.hasField("username")) {
-                client.setClientName(msg.getField("username"));
-                _acceptRequest(client);
+            if (msg.hasField("username") && !client.hasName()) {
+                _enterUsername(client, msg.getField("username"));
             } else {
                 _denyRequest(client);
             }
@@ -71,9 +71,8 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData &msg, ProtocolClien
             }
             return;
         case MethodName::JOIN_GAME:
-            if (client.hasName()) {
-                //TODO: Implement game join
-                _acceptRequest(client);
+            if (msg.hasField("game_id") && client.hasName()) {
+                _joinGameRoom(client, msg.getField("game_id"));
             } else {
                 _denyRequest(client);
             }
@@ -84,13 +83,124 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData &msg, ProtocolClien
     }
 }
 
+void IdleUsersRoom::_enterUsername(ProtocolClient &client, const std::string &username) {
+    //Check if user is rejoining a paused game
+    for (GameRoom *pausedRoom: _pausedGameRooms) {
+        if (pausedRoom->hasUsername(username)) {
+            _sendClientToGameThread(*pausedRoom, client);
+            _setGameAsRunning(*pausedRoom);
+            return;
+        }
+    }
+
+    client.setClientName(username);
+    _acceptRequest(client);
+}
+
+void IdleUsersRoom::_joinGameRoom(ProtocolClient &client1, const std::string &gameIdStr) {
+    int gameId;
+    try {
+        gameId = std::stoi(gameIdStr);
+    } catch (std::logic_error e) {
+        _denyRequest(client1);
+        return;
+    }
+
+    if (_gameRooms.count(gameId) < 1) {
+        _denyRequest(client1);
+        return;
+    }
+
+    std::unique_ptr<GameRoom> &thisRoom = _gameRooms.at(gameId);
+    //Only idle game rooms can be joined
+    if (thisRoom->getGameState() != IDLE) {
+        _denyRequest(client1);
+        return;
+    }
+
+    //Check if some client is already waiting for this game
+    for (auto const &[client2, idleGame]: _waitingToJoinGame) {
+        //The game can be started, two clients are waiting for it
+        if (idleGame == gameId) {
+            _newGameThread(client1, *client2, *thisRoom);
+
+            _sendClientToGameThread(*thisRoom, client1);
+            _sendClientToGameThread(*thisRoom, *client2);
+            return;
+        }
+    }
+
+    //Game cannot be started. Save this user as waiting to join.
+    _waitingToJoinGame[&client1] = gameId;
+    client1.sendMsg(newProtocolMessage(MethodName::GAME_IDLE));
+}
+
+void IdleUsersRoom::_newGameThread(const ProtocolClient &client1, const ProtocolClient &client2, GameRoom &room) {
+    //Register outputQueue events in our epoll
+    _epoll.addDescriptor(room.getGameOutput().getEvfd());
+    _epoll.addEventHandler(room.getGameOutput().getEvfd(), EPOLLIN, [this, &room](int evfd) {
+        _onGameStateChange(evfd, room);
+    });
+
+    _setGameAsRunning(room, client1.getClientName(), client2.getClientName());
+
+    std::thread gt(startGame, std::ref(room.getGameInput()), std::ref(room.getGameOutput()));
+    gt.detach();
+}
+
+void IdleUsersRoom::_sendClientToGameThread(GameRoom &room, ProtocolClient &client) {
+    const int clientFd = client.getClientFd();
+    _epoll.removeDescriptor(clientFd);
+    _waitingToJoinGame.erase(&client);
+
+    room.getGameInput().push(std::move(_clientsMap.at(clientFd)));
+    _clientsMap.erase(clientFd);
+}
+
+void IdleUsersRoom::_setGameAsRunning(GameRoom &room, const std::string &username1, const std::string &username2) {
+    room.setGameState(RUNNING);
+    room.addUser(username1);
+    room.addUser(username2);
+    _pausedGameRooms.erase(&room);
+}
+
+void IdleUsersRoom::_setGameAsRunning(GameRoom &room) {
+    room.setGameState(RUNNING);
+    _pausedGameRooms.erase(&room);
+}
+
+void IdleUsersRoom::_setGameAsPaused(GameRoom &room) {
+    room.setGameState(PAUSED);
+    _pausedGameRooms.insert(&room);
+}
+
+void IdleUsersRoom::_setGameAsIdle(GameRoom &room) {
+    room.setGameState(IDLE);
+    room.removeAllUsers();
+    _pausedGameRooms.erase(&room);
+}
+
 ProtocolData IdleUsersRoom::_getRoomList() {
+    //Generate inverse map - this is necessary because we aren't using boost bidirectional map
+    std::unordered_map<int, ProtocolClient *> waitingRooms{};
+    for (const auto &kvPair: _waitingToJoinGame) {
+        waitingRooms[kvPair.second] = kvPair.first;
+    }
+
     std::vector<std::vector<std::string>> roomList;
     for (auto const &[roomId, roomPtr]: _gameRooms) {
         std::vector<std::string> line;
-        auto users = roomPtr->getUsers();
-        line.emplace_back(users.first);
-        line.emplace_back(users.second);
+
+        if (waitingRooms.count(roomId) == 1) {
+            line.emplace_back(waitingRooms.at(roomId)->getClientName());
+            line.emplace_back("");
+        } else {
+            auto users = roomPtr->getUsers();
+            line.emplace_back(users.first);
+            line.emplace_back(users.second);
+        }
+
+        line.emplace_back(std::to_string(roomPtr->getRoomId()));
         line.emplace_back(std::to_string(roomPtr->getGameState()));
         roomList.emplace_back(line);
     }
@@ -180,6 +290,40 @@ void IdleUsersRoom::_onClientDisconnect(int clientfd) {
     spdlog::info("IdleUsersRoom::_onClientDisconnect Client FD{0} has terminated connection.", clientfd);
     //Remove the socket from our epoll
     _epoll.removeDescriptor(clientfd);
-    //Remove client's object - SocketBase destructor will close the TCP socket
-    _clientsMap.erase(clientfd);
+
+    if (_clientsMap.count(clientfd) == 1) {
+        //Clear any possible waiting request
+        _waitingToJoinGame.erase(_clientsMap.at(clientfd).get());
+        //Remove client's object - SocketBase destructor will close the TCP socket
+        _clientsMap.erase(clientfd);
+    }
 }
+
+void IdleUsersRoom::_onGameStateChange(int evfd, GameRoom &room) {
+    eventfd_t counterVal;
+    eventfd_read(evfd, &counterVal);
+
+    while (!room.gameOutput.isEmpty()) {
+        const GameStateChange &newState = room.getGameOutput().pop();
+        //TODO
+        switch (newState.newState) {
+            case IDLE:
+                spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to IDLE.",
+                             room.getRoomId());
+
+                break;
+            case RUNNING:
+                spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to RUNNING.",
+                             room.getRoomId());
+
+                break;
+            case PAUSED:
+                spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to PAUSED.",
+                             room.getRoomId());
+
+                break;
+        }
+
+    }
+}
+

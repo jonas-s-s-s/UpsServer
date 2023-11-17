@@ -14,6 +14,9 @@ enum GameState {
     IDLE, RUNNING, PAUSED
 };
 
+/**
+ * This class is used to signal idle room each time the game's state is somehow changed.
+ */
 class GameStateChange {
 public:
     explicit GameStateChange(GameState newState);
@@ -27,26 +30,43 @@ public:
     std::string disconnectedUsername;
 };
 
+/**
+ * This class represents a game room object which carries all data idle users room needs to know about the game.
+ * Idle users room modifies this object each time it receives GameStateChange from the game thread.
+ */
 class GameRoom {
 public:
     explicit GameRoom(unsigned int roomId);
 
     bool hasUsername(const std::string &username);
 
-    unsigned int getUserCount();
-
     void removeUser(const std::string &username);
 
-    std::pair<std::string, std::string> getUsers();
+    void removeAllUsers();
 
-    GameState getGameState() const;
+    void addUser(const std::string &username);
 
-    void setGameState(GameState gameState);
+    EventfdQueue<std::unique_ptr<ProtocolClient>> &getGameInput();
+
+    EventfdQueue<GameStateChange> &getGameOutput();
 
     //IdleRoom can transfer clients to game room via this queue
     EventfdQueue<std::unique_ptr<ProtocolClient>> gameInput{};
     //GameRoom informs the IdleRoom of its state via this queue
     EventfdQueue<GameStateChange> gameOutput{};
+
+    //Get + set
+    //##################################################################################################################
+    unsigned int getUserCount();
+
+    std::pair<std::string, std::string> getUsers();
+
+    GameState getGameState() const;
+
+    const unsigned int getRoomId() const;
+
+    void setGameState(GameState gameState);
+
 private:
     const unsigned int roomId;
     std::string usernameA;

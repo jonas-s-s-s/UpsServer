@@ -31,6 +31,8 @@ private:
 
     void _processClientMessage(const ProtocolData &msg, ProtocolClient &client);
 
+    void _joinGameRoom(ProtocolClient &client1, const std::string &gameIdStr);
+
     ProtocolData _getRoomList();
 
     void _denyRequest(ProtocolClient &client);
@@ -43,6 +45,22 @@ private:
 
     void _onClientDisconnect(int clientfd);
 
+    void _onGameStateChange(int evfd, GameRoom &room);
+
+    void _setGameAsRunning(GameRoom &room, const std::string &username1, const std::string &username2);
+
+    void _setGameAsRunning(GameRoom &room);
+
+    void _setGameAsPaused(GameRoom &room);
+
+    void _setGameAsIdle(GameRoom &room);
+
+    void _enterUsername(ProtocolClient &client, const std::string &username);
+
+    void _sendClientToGameThread(GameRoom &room, ProtocolClient &client);
+
+    void _newGameThread(const ProtocolClient &client1, const ProtocolClient &client2, GameRoom &room);
+
     EventfdQueue<int> &_newClientsQueue;
     std::thread _idleThread;
 
@@ -54,4 +72,9 @@ private:
     std::map<int, std::unique_ptr<GameRoom>> _gameRooms;
     //Pointers to paused games are written here, so they can be searched when client reconnects (no need for smart ptr here)
     std::unordered_set<GameRoom *> _pausedGameRooms;
+    /*Maps a clients to certain gameId - client is waiting to join this game,
+    once two clients start waiting for the same game, a new game is started.
+    A boost bidirectional map could possibly be a more efficient solution*/
+    std::unordered_map<ProtocolClient *, int> _waitingToJoinGame;
+
 };

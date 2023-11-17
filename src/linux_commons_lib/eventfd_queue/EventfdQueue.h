@@ -20,7 +20,17 @@ public:
             throw std::runtime_error("EventfdQueue(): ERROR - Eventfd creation failed.");
     }
 
-    void push(T item) {
+    void push(T &&item) {
+        static_assert(std::is_rvalue_reference_v<T &&>);
+        std::scoped_lock lock{dataMutex};
+        data.push(std::move(item));
+
+        //An event is created - signals write into queue - can be captured by epoll
+        eventfd_write(evfd, 1);
+    }
+
+    void push(T &item) {
+        static_assert(std::is_lvalue_reference_v<T &>);
         std::scoped_lock lock{dataMutex};
         data.push(item);
 
@@ -29,11 +39,19 @@ public:
     }
 
     T pop() {
-        std::scoped_lock lock{dataMutex};
-        T item = data.front();
-        data.pop();
-        return item;
+        if constexpr (std::is_rvalue_reference_v<T &&>) {
+            std::scoped_lock lock{dataMutex};
+            T item = std::move(data.front());
+            data.pop();
+            return std::move(item);
+        } else {
+            std::scoped_lock lock{dataMutex};
+            T item = data.front();
+            data.pop();
+            return item;
+        }
     }
+
 
     bool isEmpty() {
         std::scoped_lock lock{dataMutex};

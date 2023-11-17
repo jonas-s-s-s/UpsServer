@@ -2,7 +2,7 @@ ENTER_USERNAME\nusername:myuser1\n\r\n\r\n
 
 GET_ROOM_LIST\n\r\n\r\n
 
-JOIN_GAME\n\r\n\r\n
+JOIN_GAME\ngame_id:3\n\r\n\r\n
 
 TERMINATE_CONNECTION\n\r\n\r\n
 
