@@ -61,6 +61,8 @@ private:
 
     void _newGameThread(const ProtocolClient &client1, const ProtocolClient &client2, GameRoom &room);
 
+    void _addClientBack(std::unique_ptr<ProtocolClient> &client);
+
     EventfdQueue<int> &_newClientsQueue;
     std::thread _idleThread;
 
@@ -76,5 +78,4 @@ private:
     once two clients start waiting for the same game, a new game is started.
     A boost bidirectional map could possibly be a more efficient solution*/
     std::unordered_map<ProtocolClient *, int> _waitingToJoinGame;
-
 };

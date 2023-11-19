@@ -25,7 +25,11 @@ enum class MethodName {
     JOIN_GAME,
     //Game methods
     GAME_IDLE,
-    GAME_JOINED_OK
+    GAME_JOINED_OK,
+    GAME_LEAVE,
+    GAME_COMMAND,
+    GAME_STATE,
+    GAME_PING
 };
 static std::unordered_map<std::string, MethodName> const MethodNameTable = {
         {"CONNECTED_OK",         MethodName::CONNECTED_OK},
@@ -38,8 +42,11 @@ static std::unordered_map<std::string, MethodName> const MethodNameTable = {
         {"GET_ROOM_LIST",        MethodName::GET_ROOM_LIST},
         {"JOIN_GAME",            MethodName::JOIN_GAME},
         {"GAME_IDLE",            MethodName::GAME_IDLE},
-        {"GAME_JOINED_OK",       MethodName::GAME_JOINED_OK}
-
+        {"GAME_JOINED_OK",       MethodName::GAME_JOINED_OK},
+        {"GAME_LEAVE",           MethodName::GAME_LEAVE},
+        {"GAME_COMMAND",         MethodName::GAME_COMMAND},
+        {"GAME_STATE",           MethodName::GAME_STATE},
+        {"GAME_PING",           MethodName::GAME_PING}
 };
 
 /**
@@ -53,7 +60,7 @@ MethodName parseMethodName(const std::string &name);
 
 /**
  * Converts members of MethodName enum to string representation. Uses reversed MethodNameTable to determine return value.
- * @param name The method name to serialize
+ * @param name The method name to serializeUndirectedEdges
  * @return String, runtime_error is thrown if MethodNameTable doesn't contain this MethodName
  */
 std::string serializeMethodName(MethodName name);

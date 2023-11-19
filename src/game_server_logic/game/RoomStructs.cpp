@@ -68,6 +68,7 @@ void GameRoom::removeAllUsers() {
 
 GameStateChange::GameStateChange(const GameState newState) : newState(newState) {}
 
-GameStateChange::GameStateChange(const GameState newState,
-                                 std::unordered_set<std::unique_ptr<ProtocolClient>> &leavingClients) : newState(
-        newState), leavingClients(std::move(leavingClients)) {}
+GameStateChange::GameStateChange(const GameState newState, std::unique_ptr<ProtocolClient> &client1,std::unique_ptr<ProtocolClient> &client2) : newState(newState), client1(std::move(client1)),
+                                                                                   client2(std::move(client2)) {}
+
+

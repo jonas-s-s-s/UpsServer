@@ -1,5 +1,6 @@
 extern/cmake_deps/*
 cmake/build-debug-linux/*
+cmake/build-release-linux/*
 .idea/*
 
 CMakeLists.txt.user
@@ -15,3 +16,4 @@ CTestTestfile.cmake
 _deps
 
 *.dtmp
+*.bkp

@@ -21,13 +21,13 @@ class GameStateChange {
 public:
     explicit GameStateChange(GameState newState);
 
-    GameStateChange(GameState newState, std::unordered_set<std::unique_ptr<ProtocolClient>> &leavingClients);
+    GameStateChange(const GameState newState, std::unique_ptr<ProtocolClient> &client1,
+                    std::unique_ptr<ProtocolClient> &client2);
 
     const GameState newState;
     //One of the clients, or both can return to the idle room, their pointers are stored here
-    std::unordered_set<std::unique_ptr<ProtocolClient>> leavingClients{};
-    //One of the clients can disconnect from a running game, changing its state to PAUSED, we need to know his username
-    std::string disconnectedUsername;
+    std::unique_ptr<ProtocolClient> client1;
+    std::unique_ptr<ProtocolClient> client2;
 };
 
 /**

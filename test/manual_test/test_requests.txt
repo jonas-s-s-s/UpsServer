@@ -1,11 +1,24 @@
 ENTER_USERNAME\nusername:myuser1\n\r\n\r\n
+ENTER_USERNAME\nusername:secondUser\n\r\n\r\n
+ENTER_USERNAME\nusername:observer\n\r\n\r\n
 
 GET_ROOM_LIST\n\r\n\r\n
 
 JOIN_GAME\ngame_id:3\n\r\n\r\n
 
+Loser:
+GAME_COMMAND\nadd_edge:{0,1}\n\r\n\r\n
+GAME_COMMAND\nadd_edge:{5,1}\n\r\n\r\n
+GAME_COMMAND\nadd_edge:{5,0}\n\r\n\r\n
+
+Winner:
+GAME_COMMAND\nadd_edge:{1,2}\n\r\n\r\n
+GAME_COMMAND\nadd_edge:{3,4}\n\r\n\r\n
+
+
 TERMINATE_CONNECTION\n\r\n\r\n
 
+GAME_LEAVE\n\r\n\r\n
 
 
 

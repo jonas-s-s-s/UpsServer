@@ -84,6 +84,8 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData &msg, ProtocolClien
 }
 
 void IdleUsersRoom::_enterUsername(ProtocolClient &client, const std::string &username) {
+    client.setClientName(username);
+
     //Check if user is rejoining a paused game
     for (GameRoom *pausedRoom: _pausedGameRooms) {
         if (pausedRoom->hasUsername(username)) {
@@ -93,7 +95,6 @@ void IdleUsersRoom::_enterUsername(ProtocolClient &client, const std::string &us
         }
     }
 
-    client.setClientName(username);
     _acceptRequest(client);
 }
 
@@ -101,7 +102,7 @@ void IdleUsersRoom::_joinGameRoom(ProtocolClient &client1, const std::string &ga
     int gameId;
     try {
         gameId = std::stoi(gameIdStr);
-    } catch (std::logic_error e) {
+    } catch (std::logic_error &e) {
         _denyRequest(client1);
         return;
     }
@@ -207,6 +208,23 @@ ProtocolData IdleUsersRoom::_getRoomList() {
     return newProtocolMessage(MethodName::REQ_ACCEPTED, {{"room_list", serializeObjectList(roomList)}});
 }
 
+void IdleUsersRoom::_addClientBack(std::unique_ptr<ProtocolClient> &client) {
+    if (client) {
+        int clientfd = client->getClientFd();
+        _clientsMap[clientfd] = std::move(client);
+
+        _epoll.addDescriptor(clientfd);
+        _epoll.addEventHandler(clientfd, EPOLLIN, [this](int client) {
+            _onClientWrite(client);
+        });
+        _epoll.addEventHandler(clientfd, EPOLLRDHUP | EPOLLHUP, [this](int client) {
+            _onClientDisconnect(client);
+        });
+
+        _clientsMap[clientfd]->sendMsg(newProtocolMessage(MethodName::CONNECTED_OK));
+    }
+}
+
 void IdleUsersRoom::_denyRequest(ProtocolClient &client) {
     if (client.getReqDeniedCnt() >= MAX_REQ_DENIED_CNT) {
         _onClientDisconnect(client.getClientFd());
@@ -304,26 +322,30 @@ void IdleUsersRoom::_onGameStateChange(int evfd, GameRoom &room) {
     eventfd_read(evfd, &counterVal);
 
     while (!room.gameOutput.isEmpty()) {
-        const GameStateChange &newState = room.getGameOutput().pop();
-        //TODO
+        GameStateChange newState = room.getGameOutput().pop();
+
         switch (newState.newState) {
             case IDLE:
                 spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to IDLE.",
                              room.getRoomId());
 
+                //Add any clients sent back from game room
+                _addClientBack(newState.client1);
+                _addClientBack(newState.client2);
+
+                _setGameAsIdle(room);
                 break;
             case RUNNING:
                 spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to RUNNING.",
                              room.getRoomId());
-
+                //This is unused at the moment
                 break;
             case PAUSED:
                 spdlog::info("IdleUsersRoom::_onGameStateChange: GameRoom #{0} has changed its state to PAUSED.",
                              room.getRoomId());
-
+                _setGameAsPaused(room);
                 break;
         }
 
     }
 }
-
