@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
 #include "BufferedParser.h"
-
+#include <gtest/gtest.h>
 
 class testBaseParser : public ::testing::Test {
-protected:
+  protected:
     BufferedParser* bufferedParser;
 };

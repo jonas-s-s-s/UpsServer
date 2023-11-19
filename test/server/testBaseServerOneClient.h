@@ -4,16 +4,16 @@
 
 #pragma once
 
+#include "ClientSocket.h"
+#include "ServerController.h"
 #include <gtest/gtest.h>
 #include <thread>
-#include "ServerController.h"
-#include "ClientSocket.h"
 
 class testBaseServerOneClient : public ::testing::Test {
-protected:
-public:
-
-    static void SetUpTestSuite() {
+  protected:
+  public:
+    static void SetUpTestSuite()
+    {
         std::thread t1 = std::thread([] {
             ServerController server = ServerController{};
             server.start("127.0.0.1", 3001, 3000, 60);
@@ -21,10 +21,11 @@ public:
         t1.detach();
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
-    static void TearDownTestSuite() {
-        //code here
+    static void TearDownTestSuite()
+    {
+        // code here
     }
 
-protected:
+  protected:
     ClientSocket* client;
 };

@@ -7,15 +7,15 @@
 #include <string>
 
 class SocketBase {
-protected:
+  protected:
     int socketFd = 0;
 
     SocketBase() = default;
 
-public:
+  public:
     virtual std::string receiveData() const;
 
-    virtual void sendData(const std::string &data) const;
+    virtual void sendData(const std::string& data) const;
 
     virtual ~SocketBase();
 };

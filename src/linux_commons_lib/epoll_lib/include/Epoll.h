@@ -4,16 +4,15 @@
 
 #pragma once
 
-#include <set>
-#include <unordered_map>
 #include <functional>
+#include <set>
 #include <sys/epoll.h>
+#include <unordered_map>
 
-constexpr static const std::array<uint32_t, 6> allEventTypes{EPOLLIN, EPOLLOUT, EPOLLRDHUP, EPOLLPRI, EPOLLERR,
-                                                             EPOLLHUP};
+constexpr static const std::array<uint32_t, 6> allEventTypes{EPOLLIN, EPOLLOUT, EPOLLRDHUP, EPOLLPRI, EPOLLERR, EPOLLHUP};
 
 class MonitoredDescriptor {
-public:
+  public:
     explicit MonitoredDescriptor(int monitoredFd);
 
     bool isInitialized = false;
@@ -32,10 +31,10 @@ public:
     /**
      * Gets the events handler associated with this SINGLE eventType
      */
-    std::function<void(int)> &getHandler(uint32_t eventType);
+    std::function<void(int)>& getHandler(uint32_t eventType);
 
-private:
-    //No need to use unordered_map since there are only 6 possible event types
+  private:
+    // No need to use unordered_map since there are only 6 possible event types
     std::function<void(int)> IN_handler = nullptr;
     std::function<void(int)> OUT_handler = nullptr;
     std::function<void(int)> RDHUP_handler = nullptr;
@@ -45,7 +44,7 @@ private:
 };
 
 class Epoll {
-public:
+  public:
     Epoll(bool isEdgeTriggered);
 
     /**
@@ -56,9 +55,9 @@ public:
     void addDescriptor(int fd);
 
     /**
-    * This method is called automatically if you've added event handlers for "EPOLLRDHUP | EPOLLHUP".
-    * Otherwise in order to free memory you have to call this manually once your fd closes.
-    */
+     * This method is called automatically if you've added event handlers for "EPOLLRDHUP | EPOLLHUP".
+     * Otherwise in order to free memory you have to call this manually once your fd closes.
+     */
     void removeDescriptor(int monitoredFd);
 
     /**
@@ -77,13 +76,13 @@ public:
 
     void removeEventHandler(int monitoredFd, uint32_t eventType);
 
-    const std::unordered_map<int, MonitoredDescriptor> &getMonitoredFds() const;
+    const std::unordered_map<int, MonitoredDescriptor>& getMonitoredFds() const;
 
     int getEpollFd() const;
 
     int getIsEdgeTriggered() const;
 
-private:
+  private:
     std::unordered_map<int, MonitoredDescriptor> _monitoredFds{};
     const int _epollFd;
     const int _isEdgeTriggered;
@@ -91,24 +90,22 @@ private:
     const int _maxEventsNum = 10;
     std::vector<epoll_event> _eventsVector{};
 
-    void _reloadEventHandlers(MonitoredDescriptor &md) const;
+    void _reloadEventHandlers(MonitoredDescriptor& md) const;
 
     /**
-    * ADDS events to a NEW fd. If the FD is not new, _epollCtlModify must be used instead.
-    */
+     * ADDS events to a NEW fd. If the FD is not new, _epollCtlModify must be used instead.
+     */
     void _epollCtlAdd(int fd, uint32_t events) const;
 
     /**
-    * REWRITES the events of certain FD. All previously added events will be REMOVED.
-    */
+     * REWRITES the events of certain FD. All previously added events will be REMOVED.
+     */
     void _epollCtlModify(int fd, uint32_t events) const;
 
     static void _setNonBlocking(int fd);
 
     void _epollCtlDelete(int fd) const;
 
-public:
+  public:
     virtual ~Epoll();
 };
-
-

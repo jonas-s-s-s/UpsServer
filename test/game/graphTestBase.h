@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include "Game.h"
 #include <gtest/gtest.h>
 #include <thread>
-#include "Game.h"
 
 class graphTestBase : public ::testing::Test {
-protected:
+  protected:
     GameGraph* g;
 };

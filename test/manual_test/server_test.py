@@ -15,7 +15,6 @@ while True:
     data = s.recv(1024)
     print('Server response:', repr(data))
 
-
     message = input("Enter request: ")
 
     if message.lower() == 'exit':

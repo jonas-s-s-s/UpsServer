@@ -4,42 +4,46 @@
 
 #pragma once
 
-#include <queue>
 #include <mutex>
+#include <queue>
 #include <sys/eventfd.h>
 
-template<typename T>
-class EventfdQueue {
-private:
+template <typename T> class EventfdQueue {
+  private:
     std::queue<T> data;
     std::mutex dataMutex;
     const int evfd = eventfd(0, 0);
-public:
-    EventfdQueue() {
+
+  public:
+    EventfdQueue()
+    {
         if (evfd == -1)
             throw std::runtime_error("EventfdQueue(): ERROR - Eventfd creation failed.");
     }
 
-    void push(T &&item) {
-        static_assert(std::is_rvalue_reference_v<T &&>);
+    void push(T&& item)
+    {
+        static_assert(std::is_rvalue_reference_v<T&&>);
         std::scoped_lock lock{dataMutex};
         data.push(std::move(item));
 
-        //An event is created - signals write into queue - can be captured by epoll
+        // An event is created - signals write into queue - can be captured by epoll
         eventfd_write(evfd, 1);
     }
 
-    void push(T &item) {
-        static_assert(std::is_lvalue_reference_v<T &>);
+    void push(T& item)
+    {
+        static_assert(std::is_lvalue_reference_v<T&>);
         std::scoped_lock lock{dataMutex};
         data.push(item);
 
-        //An event is created - signals write into queue - can be captured by epoll
+        // An event is created - signals write into queue - can be captured by epoll
         eventfd_write(evfd, 1);
     }
 
-    T pop() {
-        if constexpr (std::is_rvalue_reference_v<T &&>) {
+    T pop()
+    {
+        if constexpr (std::is_rvalue_reference_v<T&&>) {
             std::scoped_lock lock{dataMutex};
             T item = std::move(data.front());
             data.pop();
@@ -52,8 +56,8 @@ public:
         }
     }
 
-
-    bool isEmpty() {
+    bool isEmpty()
+    {
         std::scoped_lock lock{dataMutex};
         return data.empty();
     }
@@ -62,7 +66,8 @@ public:
      * Thread safe by default.
      * @return Returns const int representing this queue's eventfd
      */
-    int getEvfd() const {
+    int getEvfd() const
+    {
         return evfd;
     }
 };

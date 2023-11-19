@@ -10,18 +10,18 @@
 constexpr int tcpAcceptBacklog = 5;
 
 class ServerSocketBase {
-protected:
-    int serverSocket; //listens for client connections (threadsafe - created in constructor, isn't modified elsewhere)
+  protected:
+    int serverSocket; // listens for client connections (threadsafe - created in constructor, isn't modified elsewhere)
 
-private:
+  private:
     void tcpAcceptLoop();
 
     std::thread acceptThread;
 
     virtual void _newClientConnectedHandler(int clientSocket) = 0;
 
-public:
-    ServerSocketBase(const std::string &address, uint16_t port);
+  public:
+    ServerSocketBase(const std::string& address, uint16_t port);
 
     void joinOnAcceptThread();
 
