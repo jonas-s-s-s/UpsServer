@@ -22,46 +22,49 @@ TEST_F(TestServerGame, Clients_can_start_game) {
     client1->receiveData();
     client2->receiveData();
 
-    client1->sendData("ENTER_USERNAME\nusername:TESTuser1\n\r\n\r\n");
-    client2->sendData("ENTER_USERNAME\nusername:TESTuser2\n\r\n\r\n");
+    client1->sendData("ENTER_USERNAME\nusername:TESTuser1A\n\r\n\r\n");
+    client2->sendData("ENTER_USERNAME\nusername:TESTuser2A\n\r\n\r\n");
 
     // REQ_ACCEPTED
     client1->receiveData();
-    client2->receiveData();;
+    client2->receiveData();
 
     client1->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
-    std::string state1 = client1->receiveData();
+    client1->receiveData();
 
     client2->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
     std::string state2 = client2->receiveData();
+    std::string state1 = client1->receiveData();
 
     ASSERT_TRUE((state1.find("GAME_STATE") != std::string::npos) && (state2.find("GAME_STATE") != std::string::npos));
 }
 
 TEST_F(TestServerGame, Clients_can_play_game) {
-    // CONNECTED_OK
-    client1->receiveData();
-    client2->receiveData();
+    std::string t1, t2;
 
-    client1->sendData("ENTER_USERNAME\nusername:TESTuser1\n\r\n\r\n");
-    client2->sendData("ENTER_USERNAME\nusername:TESTuser2\n\r\n\r\n");
+    // CONNECTED_OK
+    t1 = client1->receiveData();
+    t2 = client2->receiveData();
+
+    client1->sendData("ENTER_USERNAME\nusername:TESTuser1B\n\r\n\r\n");
+    client2->sendData("ENTER_USERNAME\nusername:TESTuser2B\n\r\n\r\n");
     // REQ_ACCEPTED
-    client1->receiveData();
-    client2->receiveData();
+    t1 = client1->receiveData();
+    t2 = client2->receiveData();
 
     client1->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
     // GAME_IDLE
-    client1->receiveData();
+    t1 = client1->receiveData();
 
     client2->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
     // JOINED_GAME
-    client2->receiveData();
+    t2 = client2->receiveData();
 
     // GAME_STATE
     std::string gs1 = client1->receiveData();
 
-    if (gs1.find("on_turn:TESTuser2") != std::string::npos) {
-        /**
+    if (gs1.find("on_turn:TESTuser2B") != std::string::npos) {
+        /*
          Loser:
         GAME_COMMAND\nadd_edge:{0,1}\n\r\n\r\n
         GAME_COMMAND\nadd_edge:{5,1}\n\r\n\r\n
@@ -73,25 +76,25 @@ TEST_F(TestServerGame, Clients_can_play_game) {
          */
 
         client2->sendData("GAME_COMMAND\nadd_edge:{0,1}\n\r\n\r\n");
-        client2->receiveData();
+        t2 = client2->receiveData();
 
-        client1->receiveData();
+        t1 = client1->receiveData();
         client1->sendData("GAME_COMMAND\nadd_edge:{1,2}\n\r\n\r\n");
-        client1->receiveData();
+        t1 = client1->receiveData();
 
-        client2->receiveData();
+        t2 = client2->receiveData();
         client2->sendData("GAME_COMMAND\nadd_edge:{5,1}\n\r\n\r\n");
-        client2->receiveData();
+        t2 = client2->receiveData();
 
-        client1->receiveData();
+        t1 = client1->receiveData();
         client1->sendData("GAME_COMMAND\nadd_edge:{3,4}\n\r\n\r\n");
-        client1->receiveData();
+        t1 = client1->receiveData();
 
-        client2->receiveData();
+        t2 = client2->receiveData();
         client2->sendData("GAME_COMMAND\nadd_edge:{5,0}\n\r\n\r\n");
         std::string endstate = client2->receiveData();
 
-        ASSERT_TRUE((endstate.find("winning_player:TESTuser1") != std::string::npos));
+        ASSERT_TRUE((endstate.find("winning_player:TESTuser1B") != std::string::npos));
     } else {
         client1->receiveData();
         client1->sendData("GAME_COMMAND\nadd_edge:{0,1}\n\r\n\r\n");
@@ -113,7 +116,7 @@ TEST_F(TestServerGame, Clients_can_play_game) {
         client1->sendData("GAME_COMMAND\nadd_edge:{5,0}\n\r\n\r\n");
         std::string endstate = client1->receiveData();
 
-        ASSERT_TRUE((endstate.find("winning_player:TESTuser2") != std::string::npos));
+        ASSERT_TRUE((endstate.find("winning_player:TESTuser2B") != std::string::npos));
     }
 }
 
@@ -122,8 +125,8 @@ TEST_F(TestServerGame, Clients_can_pause_game) {
     client1->receiveData();
     client2->receiveData();
 
-    client1->sendData("ENTER_USERNAME\nusername:TESTuser1\n\r\n\r\n");
-    client2->sendData("ENTER_USERNAME\nusername:TESTuser2\n\r\n\r\n");
+    client1->sendData("ENTER_USERNAME\nusername:TESTuser1C\n\r\n\r\n");
+    client2->sendData("ENTER_USERNAME\nusername:TESTuser2C\n\r\n\r\n");
 
     // REQ_ACCEPTED
     client1->receiveData();
@@ -135,7 +138,7 @@ TEST_F(TestServerGame, Clients_can_pause_game) {
     client2->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
     client2->receiveData();
 
-    //Disconnect the client
+    // Disconnect the client
     client2->sendData("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -149,11 +152,11 @@ TEST_F(TestServerGame, Clients_can_leave_game) {
     client1->receiveData();
     client2->receiveData();
 
-    client1->sendData("ENTER_USERNAME\nusername:TESTuser1\n\r\n\r\n");
+    client1->sendData("ENTER_USERNAME\nusername:TESTuser1D\n\r\n\r\n");
     // REQ_ACCEPTED
     client1->receiveData();
 
-    client2->sendData("ENTER_USERNAME\nusername:TESTuser2\n\r\n\r\n");
+    client2->sendData("ENTER_USERNAME\nusername:TESTuser2D\n\r\n\r\n");
     client2->receiveData();
 
     client1->sendData("JOIN_GAME\ngame_id:3\n\r\n\r\n");
@@ -164,7 +167,7 @@ TEST_F(TestServerGame, Clients_can_leave_game) {
 
     client1->receiveData();
 
-    //Client will leave game
+    // Client will leave game
     client2->sendData("GAME_LEAVE\n\r\n\r\n");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -174,5 +177,3 @@ TEST_F(TestServerGame, Clients_can_leave_game) {
 
     ASSERT_TRUE(res1.find("CONNECTED_OK") != std::string::npos && res2.find("CONNECTED_OK") != std::string::npos);
 }
-
-

@@ -26,7 +26,6 @@ enum class MethodName
     JOIN_GAME,
     // Game methods
     GAME_IDLE,
-    GAME_JOINED_OK,
     GAME_LEAVE,
     GAME_COMMAND,
     GAME_STATE,
@@ -42,7 +41,6 @@ static std::unordered_map<std::string, MethodName> const MethodNameTable = {{"CO
                                                                             {"GET_ROOM_LIST", MethodName::GET_ROOM_LIST},
                                                                             {"JOIN_GAME", MethodName::JOIN_GAME},
                                                                             {"GAME_IDLE", MethodName::GAME_IDLE},
-                                                                            {"GAME_JOINED_OK", MethodName::GAME_JOINED_OK},
                                                                             {"GAME_LEAVE", MethodName::GAME_LEAVE},
                                                                             {"GAME_COMMAND", MethodName::GAME_COMMAND},
                                                                             {"GAME_STATE", MethodName::GAME_STATE},

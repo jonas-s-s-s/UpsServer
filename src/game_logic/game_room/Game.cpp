@@ -57,6 +57,8 @@ void Game::startGameLoop() {
 // # Response to client messages
 // ######################################################################################################################
 void Game::_processClientMessage(const ProtocolData& data, ProtocolClient& client) {
+    // Check if client is online here? Once before processing message.
+
     switch (data.method) {
     case MethodName::GAME_COMMAND:
         _processGameCommand(data, client);
@@ -71,6 +73,9 @@ void Game::_processClientMessage(const ProtocolData& data, ProtocolClient& clien
         _denyRequest(client);
         break;
     }
+    // Every client should send either ping or some request once in 30 or so seconds. Else they'll be terminated in this call once the
+    // second client sends a request. _updateClientLastSeen needs to be called as the last in this function, because it can disconnect the
+    // socket and set its pointer to nullptr, which if accessed by another function would result in segfault.
     _updateClientLastSeen(client);
 }
 
@@ -171,13 +176,17 @@ void Game::_updateClientLastSeen(ProtocolClient& client) {
     player.lastSeen = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     // Check if inactivity time was exceeded by one of the players
-    if (_player1.lastSeen != 0 && (_player1.lastSeen - player.lastSeen > Player::MAX_INACTIVITY_MS)) {
-        if (playerOneOnline())
+    if (_player1.lastSeen != 0 && (player.lastSeen - _player1.lastSeen > Player::MAX_INACTIVITY_MS)) {
+        if (playerOneOnline()) {
+            spdlog::info("Game::_updateClientLastSeen: Player1 has timeouted.");
             _onClientDisconnect(_player1.client->getClientFd());
+        }
     }
-    if (_player2.lastSeen != 0 && (_player2.lastSeen - player.lastSeen > Player::MAX_INACTIVITY_MS)) {
-        if (playerTwoOnline())
+    if (_player2.lastSeen != 0 && (player.lastSeen - _player2.lastSeen > Player::MAX_INACTIVITY_MS)) {
+        if (playerTwoOnline()) {
+            spdlog::info("Game::_updateClientLastSeen: Player2 has timeouted.");
             _onClientDisconnect(_player2.client->getClientFd());
+        }
     }
 }
 
@@ -227,8 +236,6 @@ void Game::_onNewClientConnect(int evfd) {
             _updateClientLastSeen(*_player1.client);
             _player2.client->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
             _updateClientLastSeen(*_player2.client);
-        } else {
-            client->sendMsg(newProtocolMessage(MethodName::GAME_JOINED_OK));
         }
     }
 }
