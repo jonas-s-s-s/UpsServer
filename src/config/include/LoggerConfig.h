@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <string>
 /**
  * Configures the global spdlog logger.
  */

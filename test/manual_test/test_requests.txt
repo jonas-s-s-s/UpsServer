@@ -20,6 +20,11 @@ TERMINATE_CONNECTION\n\r\n\r\n
 
 GAME_LEAVE\n\r\n\r\n
 
+GAME_PING\n\r\n\r\n
+
+sudo fuser -k 3001/tcp
+
+
 
 
 

@@ -57,7 +57,6 @@ void Game::startGameLoop() {
 // # Response to client messages
 // ######################################################################################################################
 void Game::_processClientMessage(const ProtocolData& data, ProtocolClient& client) {
-    _updateClientLastSeen(client);
     switch (data.method) {
     case MethodName::GAME_COMMAND:
         _processGameCommand(data, client);
@@ -72,6 +71,7 @@ void Game::_processClientMessage(const ProtocolData& data, ProtocolClient& clien
         _denyRequest(client);
         break;
     }
+    _updateClientLastSeen(client);
 }
 
 void Game::_endGame() {
@@ -154,8 +154,8 @@ void Game::_processGameCommand(const ProtocolData& data, ProtocolClient& client)
         gameData["winning_player"] = (_player1.client->getClientFd() == player.client->getClientFd()) ? _player2.client->getClientName()
                                                                                                       : _player1.client->getClientName();
     }
-    _player1.client.get()->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
-    _player2.client.get()->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
+    _player1.client->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
+    _player2.client->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
 
     if (playerLost) {
         _clearGame();
@@ -163,12 +163,22 @@ void Game::_processGameCommand(const ProtocolData& data, ProtocolClient& client)
 }
 
 void Game::_clientPing(ProtocolClient& client) {
-    // TODO: SEND BACK PING TO CLIENT
+    client.sendMsg(newProtocolMessage(MethodName::GAME_PING));
 }
 
 void Game::_updateClientLastSeen(ProtocolClient& client) {
-    // TODO: UPDATE CLIENTS TIMESTAMP
-    // HERE IS THE ONLY PLACE WHERE TIMESTAMPS AND DISCONNECTS IF TIMESTAMP EXCEEDED ARE MANAGED!
+    Player& player = getPlayer(client.getClientFd());
+    player.lastSeen = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    // Check if inactivity time was exceeded by one of the players
+    if (_player1.lastSeen != 0 && (_player1.lastSeen - player.lastSeen > Player::MAX_INACTIVITY_MS)) {
+        if (playerOneOnline())
+            _onClientDisconnect(_player1.client->getClientFd());
+    }
+    if (_player2.lastSeen != 0 && (_player2.lastSeen - player.lastSeen > Player::MAX_INACTIVITY_MS)) {
+        if (playerTwoOnline())
+            _onClientDisconnect(_player2.client->getClientFd());
+    }
 }
 
 void Game::_denyRequest(ProtocolClient& client) {
@@ -213,8 +223,10 @@ void Game::_onNewClientConnect(int evfd) {
         if (bothPlayersOnline()) {
             _isPaused = false;
             auto gameData = _serializeGameData();
-            _player1.client.get()->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
-            _player2.client.get()->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
+            _player1.client->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
+            _updateClientLastSeen(*_player1.client);
+            _player2.client->sendMsg(ProtocolData{MethodName::GAME_STATE, gameData});
+            _updateClientLastSeen(*_player2.client);
         } else {
             client->sendMsg(newProtocolMessage(MethodName::GAME_JOINED_OK));
         }

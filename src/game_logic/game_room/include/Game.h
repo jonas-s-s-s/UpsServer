@@ -15,8 +15,10 @@ void startGame(EventfdQueue<std::unique_ptr<ProtocolClient>>& gameInput, Eventfd
 
 class Player {
   public:
+    constexpr static uint64_t MAX_INACTIVITY_MS = 30000;
     GameGraph myGraph{};
     std::unique_ptr<ProtocolClient> client;
+    uint64_t lastSeen = 0;
 };
 
 class Game {
