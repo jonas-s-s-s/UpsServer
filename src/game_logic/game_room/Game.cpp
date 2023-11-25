@@ -2,14 +2,6 @@
 // Created by xPC on 17.11.2023.
 //
 
-/**
- * TODO:
- * 1) -------Join and start playing game?
- * 2) --------Game terminated - end of thread - return users to idle room
- * 3) --------Game paused - one of the users disconnected
- * 4) Ping and idle user disconnect mechanism - will also cause paused game to be terminated after certain period
- */
-
 #include "Game.h"
 #include "spdlog/spdlog.h"
 #include <sstream>

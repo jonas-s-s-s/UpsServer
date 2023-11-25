@@ -119,8 +119,13 @@ void IdleUsersRoom::_joinGameRoom(ProtocolClient& client1, const std::string& ga
     for (auto const& [client2, idleGame] : _waitingToJoinGame) {
         // The game can be started, two clients are waiting for it
         if (idleGame == gameId) {
-            _newGameThread(client1, *client2, *thisRoom);
+            //Client is trying to join the same room again
+            if(client1.getClientFd() == client2->getClientFd()) {
+                _denyRequest(client1);
+                return;
+            }
 
+            _newGameThread(client1, *client2, *thisRoom);
             _sendClientToGameThread(*thisRoom, client1);
             _sendClientToGameThread(*thisRoom, *client2);
             return;
