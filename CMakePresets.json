@@ -2,7 +2,7 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "Debug-Linux",
+      "name": "debug",
       "displayName": "Debug for Linux",
       "description": "Basic debugging build for Linux.",
       "generator": "Unix Makefiles",
@@ -12,7 +12,7 @@
       }
     },
     {
-      "name": "Release-Linux",
+      "name": "release",
       "displayName": "release for Linux",
       "description": "Basic release build for Linux.",
       "generator": "Unix Makefiles",
@@ -21,5 +21,26 @@
         "CMAKE_BUILD_TYPE": "Release"
       }
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "hidden": false,
+      "configurePreset": "release",
+      "jobs": 6,
+      "nativeToolOptions": [
+        "--no-print-directory"
+      ]
+    },
+    {
+      "name": "debug",
+      "hidden": false,
+      "configurePreset": "debug",
+      "jobs": 6,
+      "nativeToolOptions": [
+        "--no-print-directory"
+      ]
+    }
   ]
+
 }
