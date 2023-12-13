@@ -12,8 +12,8 @@
       }
     },
     {
-      "name": "Relase-Linux",
-      "displayName": "Debug for Linux",
+      "name": "Release-Linux",
+      "displayName": "release for Linux",
       "description": "Basic release build for Linux.",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/cmake/build-release-linux",
