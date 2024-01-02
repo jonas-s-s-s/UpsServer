@@ -80,6 +80,32 @@ void IdleUsersRoom::_processClientMessage(const ProtocolData& msg, ProtocolClien
 }
 
 void IdleUsersRoom::_enterUsername(ProtocolClient& client, const std::string& username) {
+    //Check if there already is user with this name in the idle rom
+    for (auto& clientCM: _clientsMap) {
+        if(clientCM.second.get()->hasName() && clientCM.second.get()->getClientFd() != client.getClientFd()) {
+            if( clientCM.second.get()->getClientName() == username) {
+                _denyRequest(client);
+                return;
+            }
+        }
+    }
+
+    //Check if user with this name exist in an active game room
+    for (auto& pair: _gameRooms) {
+        if(pair.second->hasUsername(username)) {
+            _denyRequest(client);
+            return;
+        }
+    }
+
+    //Check if user with this name exists in a paused game room
+    for (auto& gameRoom: _pausedGameRooms) {
+        if(gameRoom->hasUsername(username)) {
+            _denyRequest(client);
+            return;
+        }
+    }
+
     client.setClientName(username);
 
     // Check if user is rejoining a paused game
@@ -92,6 +118,7 @@ void IdleUsersRoom::_enterUsername(ProtocolClient& client, const std::string& us
     }
 
     _acceptRequest(client);
+
 }
 
 void IdleUsersRoom::_joinGameRoom(ProtocolClient& client1, const std::string& gameIdStr) {
